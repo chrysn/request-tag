@@ -21,12 +21,13 @@ normative:
   RFC7252:
 
 informative:
+  RFC7959:
   I-D.draft-ietf-core-object-security-01:
 
 --- abstract
 
 This memo describes an optional extension to the Constrained Application
-Protocol (CoAP, RFC7252) that allows extending the endpoint context of a
+Protocol (CoAP, {{RFC7252}}) that allows extending the endpoint context of a
 request with an additional discriminator. This allows processing
 concurrent requests that would otherwise be serialized by proxies in
 presence of blockwise transfer, and linking blockwise requests on
@@ -37,7 +38,7 @@ transports that do provide authentication but no ordering guarantees.
 Introduction
 ============
 
-Blockwise transfer [RFC7959] in the presence of Block1 ties an exchange
+Blockwise transfer {{RFC7959}} in the presence of Block1 ties an exchange
 to a combination of resource and remote endpoint, keeping any two
 exchanges where those parameters match from happening simultaneously.
 Wherever either of those parameters get conflated (eg. because a proxy
@@ -80,6 +81,7 @@ The Request-Discriminator option
 
 A new option is defined for all request methods:
 
+~~~~~~~~~~
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
     | No. | C | U | N | R | Name                  | Format | Length | Default |
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
@@ -87,6 +89,8 @@ A new option is defined for all request methods:
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
     
     C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
+~~~~~~~~~~
+{: #optsum title="Option summary"}
 
 It is critical (because mechanisms may rely on endpoint identities not
 to be conflated), unsafe (because the channels implied by endpoint
@@ -174,21 +178,24 @@ Notes on applications
 @@@ spell out example exchanges: proxy forwarding multiple requests,
 oscoap application. include a case with non-piggybacked reponses.
 
->         Client              Foe         Server
-> 
-> POST "incarcerate"(1/2) --->  --->
->                        <---  <---   2.31 CONTINUE
-> POST "valjean"(2/2)     --->@
->                        <---RST
-> 
-> (Client: Odd, but let's go on and promote Javert)
-> 
-> POST "promote"(1/2)    --->  --->
->                       <---  <---    2.31 CONTINUE
->                            @ --->
->                             <---    2.04 Valjean Promoted!
-> 
-> (The @ indicates a maliciously delayed / wormholed package as used in
+~~~~~~~~~~
+            Client              Foe         Server
+    
+    POST "incarcerate"(1/2) --->  --->
+                           <---  <---   2.31 CONTINUE
+    POST "valjean"(2/2)     --->@
+                           <---RST
+    
+    (Client: Odd, but let's go on and promote Javert)
+    
+    POST "promote"(1/2)    --->  --->
+                          <---  <---    2.31 CONTINUE
+                               @ --->
+                                <---    2.04 Valjean Promoted!
+    
+    (The @ indicates a maliciously delayed / wormholed package as used in
+~~~~~~~~~~
+{: #promotevaljcean title="Attack example" }
 
 this can't happen in oscoap now any more because the incomplete first
 POST permanently poisons the first request's request discriminator, and
