@@ -1,6 +1,6 @@
-# Request-Discriminator option
+# Request-Tag option
 
-This is the working area for the Individual internet-draft, "Request-Discriminator option".
+This is the working area for the Individual internet-draft, "Request-Tag option".
 
 * [Editor's copy](https://chrysn.github.io/request-tag/)
 * [Individual Draft](https://tools.ietf.org/html/draft-amsuess-core-request-tag)

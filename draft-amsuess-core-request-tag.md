@@ -1,5 +1,5 @@
 ---
-title: Request-Discriminator option
+title: Request-Tag option
 docname: draft-amsuess-core-request-tag-latest
 category: std
 
@@ -19,65 +19,132 @@ author:
 
 normative:
   RFC7252:
+  RFC2119:
 
 informative:
   RFC7959:
   I-D.draft-ietf-core-object-security-01:
+  I-D.draft-mattsson-core-coap-actuators-02:
 
 --- abstract
 
 This memo describes an optional extension to the Constrained Application
-Protocol (CoAP, {{RFC7252}}) that allows extending the endpoint context of a
-request with an additional discriminator. This allows processing
-concurrent requests that would otherwise be serialized by proxies in
-presence of blockwise transfer, and linking blockwise requests on
-transports that do provide authentication but no ordering guarantees.
+Protocol (CoAP, {{RFC7252}} and {{RFC7959}}) that allows matching of request
+blocks. This primarily serves to transfer the security properties that Object
+Security of CoAP (OSCOAP, {{I-D.ietf-core-object-security}}) provides
+for single requests to blockwise transfers. The security of blockwise transfer
+in OSCOAP is reflected on here.
 
 --- middle
 
 Introduction
 ============
 
-Blockwise transfer {{RFC7959}} in the presence of Block1 ties an exchange
-to a combination of resource and remote endpoint, keeping any two
-exchanges where those parameters match from happening simultaneously.
-Wherever either of those parameters get conflated (eg. because a proxy
-acts as a single endpoint towards a server when forwarding operations on
-the same resource, or in Object Security of CoAP (OSCOAP) where all a
-client's request are targetted at the same resource from an outside
-point of view), the client needs to queue up requests to keep the
-transfers from overriding each other.
+The OSCOAP protocol provides a security layer for CoAP that, given a security
+context shared with a peer, provides
 
-(@@@ who else references 'same Endpoint'? other documents could be
-affected of profit)
+* encryption of payload and some options,
+* integrity protection of the encrypted data and some more message options,
+* protection against replays once a request has reached the server, and
+* protected matching between request and response messages.
 
-The OSCOAP security layer provides message integrity and replay
-protection, but with blockwise, the security context (which augments the
-endpoint address) alone is insufficient protection because it does not
-(and does not indent to) forbid out-of-order delivery.
+It does not (and should not) provide sequential delivery. In particular, it
+does not protect against requests being delayed; the corresponding attack and
+mitigation is described in {{I-D.mattsson-core-coap-actuators}}.
 
-Both situations can be mitigated by allowing the client to add an
-additional discriminator (the Request-Disciminator option), which must
-be treated as a part of the (security context of an) endpoint as defined
-in RFC7252 section 1.2.
+The goal of this memo is to provide protection to the bodies of a blockwise
+fragmented request/response pair that is equivalent to the protection that
+would be provided if the complete request and response bodies fit into single
+messae each. (Packing long payloads into single OSCOAP messages is actually
+possible using the outer blockwise mechanism, but does not go well with
+the constraints of devices CoAP is designed for). \[Author's note: The results
+of this might move back into OSCOAP -- for now, the matter is explored here.\]
 
-Terminology
-===========
 
-The terms Endpoint, byte, @@@ are used as in RFC7252.
+The proposed method of matching blocks to each other is the introduction of a
+Request-Tag option, which is similar to the ETag sent along with responses, but
+ephemeral and set by the client.
 
-An exchange is @@@ the thing with tokens and not MIDs -- should check
-with OSCOAP, i never really considered it there, and it didn't happen in
-the tests
+\[Author's note: At a later stage of this draft, the possibility of moving the
+Request-Tag value into the AAD as to not spend transmitted bytes on it, eg. by
+mandating OSCOAP clients to use the partial IV as Request-Tag. This requires
+ensured agreement between server and client about whether or not a Request-Tag
+is present, which can hopefully be obtained in the analysis of the various
+forms a blockwise exchange can take.\]
 
-Request Discriminator: An opaque identifier chosen by the client. It can
-  be absent or a string of up to 8 bytes, including the empty string.
-  The phrasing as two words always indicates such a value, while
-  Request-Discriminator (with dash) is the CoAP option in which it is
-  transferred.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
+"SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be
+interpreted as described in {{RFC2119}}.
 
-The Request-Discriminator option
-================================
+The terms "payload" and "body" are used as in {{RFC7959}}. The complete
+interchange of a request and a response body is called a REST "operation",
+while a request and response message (as matched by their tokens) is called an
+"exchange".
+
+Blockwise transfer cases
+========================
+
+There are several shapes a blockwise exchange can take, named here for further
+reference. Requests or responses bodies are called "small" or "large" here if
+they do or do not, respectively, fit in a single message. Empty bodies are
+small.
+
+\[Author's note: I'd appreciate real examples to replace the more contrived
+ones; the worst are marked with (?).\]
+
+* *NN*: Request and response bodies are both small. No fragmentation happens.
+
+  Examples: GETs to sensors, PUTs to actors.
+
+* *NS*: A small request causes a large response, which gets fragmented and
+  sequentially fetched by the client.
+
+  Examples: GETting an unfiltered link-format list, PUTting a compressed image
+  to a picture frame that decides to return its (decompressed) state in full in
+  the response(?).
+
+* *NR*: A small request is used to access a large one at random offsets.
+
+  Examples: Inspecting a device's exposed memory.
+
+* *SN*: A large request is sent in sequential blocks with a small (typically
+  empty) response.
+
+  The server can, after any block, indicate that it has processed the blocks so
+  far, and send a status for the processed ones.
+
+  Examples: FETCHing a complex query, POSTing one's resource list to a resource
+  directory.
+
+* *RN*: A large request is sent in a random-access pattern, resulting in a
+  small response(s) (typically, one response each, as the server would in that
+  scenario send successful responses after each block or small groups of blocks.
+
+  Examples: Storing data in a memory region of a device. (?)
+
+* *SR*, *RR*: Large requests (sequentially or randomly requested) that have
+  their large responses fetched in random access patterns -- these cases are
+  explicitly forbidden in blockwise transfer ({{RFC7959}} section 2.7).
+
+* *RS*: \[That's a tough one. A) I can't come up with examples, and B) the same
+  section 2.7 says that Block2 processing starts when the *last* block is done,
+  implying that the request is sequential but not outright prescribing it.
+  Furthermore, can there be inbetween successful replies? \]
+
+* *SS*: A large request is sent sequentially, and the large response is fetched
+  in sequential blocks after the request has been transmitted in full.
+
+\[Note that the *NS* picture frame example is by far the worst and
+farest-fetched. I'd like to have an example of a non-safe request resulting in
+fragmented responses, but that behavior is usually discouraged (PUT responses
+typically being empty, POST responses bearing a Location), but not outright
+forbidden, and catered for in blockwise where it comes to combined use of
+Block1 and Block2.\]
+
+\[Missing: analysis\]
+
+The Request-Tag option
+======================
 
 A new option is defined for all request methods:
 
@@ -85,12 +152,14 @@ A new option is defined for all request methods:
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
     | No. | C | U | N | R | Name                  | Format | Length | Default |
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | TBD | x | x | - |   | Request-Discriminator | opaque |    0-8 | (none)  |
+    | TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
     
     C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
 ~~~~~~~~~~
 {: #optsum title="Option summary"}
+
+\[Resume moving this from Request-Discriminator to Request-Tag here\]
 
 It is critical (because mechanisms may rely on endpoint identities not
 to be conflated), unsafe (because the channels implied by endpoint
@@ -132,7 +201,7 @@ Whenever the Block1 option is used as inner option, it is associated
 with a Request Discriminator. The same Request Discriminator MUST NOT be
 reused within a security context unless every single block sent has
 elicted a protected response (and its sequence number is consequently
-marked used). (@@@ if we're cautious, we could s/unless.*/at all/, but i
+marked used). (@@@ if we're cautious, we could `s/unless.*/at all/`, but i
 don't see any harm in allowing it.) OSCOAP requires that out-of-order
 delivery of blockwise transfers is caught by the Request-Discriminator
 option, so a client MUST NOT fall back to not using the
