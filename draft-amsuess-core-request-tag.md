@@ -1,9 +1,29 @@
-============================
-Request-Discriminator option
-============================
+---
+title: Request-Discriminator option
+docname: draft-amsuess-core-request-tag-latest
+category: std
 
-Abstract
-========
+ipr: trust200902
+area: General
+workgroup: CoRE Working Group
+
+stand_alone: yes
+pi: [toc, sortrefs, symrefs]
+
+author:
+ -
+    ins: C. Amsüss
+    name: Christian Amsüss
+    organization: Energy Harvesting Solutions
+    email: c.amsuess@energyharvesting.at
+
+normative:
+  RFC7252:
+
+informative:
+  I-D.draft-ietf-core-object-security-01:
+
+--- abstract
 
 This memo describes an optional extension to the Constrained Application
 Protocol (CoAP, RFC7252) that allows extending the endpoint context of a
@@ -11,6 +31,8 @@ request with an additional discriminator. This allows processing
 concurrent requests that would otherwise be serialized by proxies in
 presence of blockwise transfer, and linking blockwise requests on
 transports that do provide authentication but no ordering guarantees.
+
+--- middle
 
 Introduction
 ============
@@ -322,3 +344,5 @@ Informative References
 OSCOAP
 blockwise
 coap-over-serial if referenced
+
+--- back
