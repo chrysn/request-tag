@@ -8,18 +8,18 @@ Intended status: Standards Track                          March 17, 2017
 Expires: September 18, 2017
 
 
-                      Request-Discriminator option
+                           Request-Tag option
                  draft-amsuess-core-request-tag-latest
 
 Abstract
 
    This memo describes an optional extension to the Constrained
-   Application Protocol (CoAP, [RFC7252]) that allows extending the
-   endpoint context of a request with an additional discriminator.  This
-   allows processing concurrent requests that would otherwise be
-   serialized by proxies in presence of blockwise transfer, and linking
-   blockwise requests on transports that do provide authentication but
-   no ordering guarantees.
+   Application Protocol (CoAP, [RFC7252] and [RFC7959]) that allows
+   matching of request blocks.  This primarily serves to transfer the
+   security properties that Object Security of CoAP (OSCOAP,
+   [I-D.ietf-core-object-security]) provides for single requests to
+   blockwise transfers.  The security of blockwise transfer in OSCOAP is
+   reflected on here.
 
 Status of This Memo
 
@@ -55,7 +55,7 @@ Copyright Notice
 
 Amsuess                Expires September 18, 2017               [Page 1]
 
-Internet-Draft        Request-Discriminator option            March 2017
+Internet-Draft             Request-Tag option                 March 2017
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -64,83 +64,183 @@ Internet-Draft        Request-Discriminator option            March 2017
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   3
-   3.  The Request-Discriminator option  . . . . . . . . . . . . . .   3
-   4.  For inclusion in OSCOAP . . . . . . . . . . . . . . . . . . .   4
-   5.  Notes on applications . . . . . . . . . . . . . . . . . . . .   5
-   6.  Rationale . . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   7.  The naming of options . . . . . . . . . . . . . . . . . . . .   6
-   8.  Standard hygiene  . . . . . . . . . . . . . . . . . . . . . .   7
-   9.  Security Considerations . . . . . . . . . . . . . . . . . . .   7
-   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .   8
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     11.1.  Informative References . . . . . . . . . . . . . . . . .   8
-   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .   8
-     12.1.  Normative References . . . . . . . . . . . . . . . . . .   8
-     12.2.  Informative References . . . . . . . . . . . . . . . . .   8
-     12.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .   9
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .   9
+   2.  Blockwise transfer cases  . . . . . . . . . . . . . . . . . .   3
+   3.  The Request-Tag option  . . . . . . . . . . . . . . . . . . .   5
+   4.  For inclusion in OSCOAP . . . . . . . . . . . . . . . . . . .   6
+   5.  Notes on applications . . . . . . . . . . . . . . . . . . . .   7
+   6.  Rationale . . . . . . . . . . . . . . . . . . . . . . . . . .   7
+   7.  The naming of options . . . . . . . . . . . . . . . . . . . .   8
+   8.  Standard hygiene  . . . . . . . . . . . . . . . . . . . . . .   9
+   9.  Security Considerations . . . . . . . . . . . . . . . . . . .   9
+   10. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     11.1.  Informative References . . . . . . . . . . . . . . . . .  10
+   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     12.1.  Normative References . . . . . . . . . . . . . . . . . .  10
+     12.2.  Informative References . . . . . . . . . . . . . . . . .  10
+     12.3.  URIs . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  11
 
 1.  Introduction
 
-   Blockwise transfer [RFC7959] in the presence of Block1 ties an
-   exchange to a combination of resource and remote endpoint, keeping
-   any two exchanges where those parameters match from happening
-   simultaneously.  Wherever either of those parameters get conflated
-   (eg. because a proxy acts as a single endpoint towards a server when
-   forwarding operations on the same resource, or in Object Security of
-   CoAP (OSCOAP) where all a client's request are targetted at the same
-   resource from an outside point of view), the client needs to queue up
-   requests to keep the transfers from overriding each other.
+   The OSCOAP protocol provides a security layer for CoAP that, given a
+   security context shared with a peer, provides
 
-   (@@@ who else references 'same Endpoint'? other documents could be
-   affected of profit)
+   o  encryption of payload and some options,
 
-   The OSCOAP security layer provides message integrity and replay
-   protection, but with blockwise, the security context (which augments
-   the endpoint address) alone is insufficient protection because it
-   does not (and does not indent to) forbid out-of-order delivery.
+   o  integrity protection of the encrypted data and some more message
+      options,
 
-   Both situations can be mitigated by allowing the client to add an
-   additional discriminator (the Request-Disciminator option), which
-   must be treated as a part of the (security context of an) endpoint as
-   defined in RFC7252 section 1.2.
+   o  protection against replays once a request has reached the server,
+      and
 
+   o  protected matching between request and response messages.
+
+   It does not (and should not) provide sequential delivery.  In
+   particular, it does not protect against requests being delayed; the
+   corresponding attack and mitigation is described in
+   [I-D.mattsson-core-coap-actuators].
+
+   The goal of this memo is to provide protection to the bodies of a
+   blockwise fragmented request/response pair that is equivalent to the
+   protection that would be provided if the complete request and
+   response bodies fit into single messae each.  (Packing long payloads
+   into single OSCOAP messages is actually possible using the outer
 
 
 
 Amsuess                Expires September 18, 2017               [Page 2]
 
-Internet-Draft        Request-Discriminator option            March 2017
+Internet-Draft             Request-Tag option                 March 2017
 
 
-2.  Terminology
+   blockwise mechanism, but does not go well with the constraints of
+   devices CoAP is designed for).  [Author's note: The results of this
+   might move back into OSCOAP - for now, the matter is explored here.]
 
-   The terms Endpoint, byte, @@@ are used as in RFC7252.
+   The proposed method of matching blocks to each other is the
+   introduction of a Request-Tag option, which is similar to the ETag
+   sent along with responses, but ephemeral and set by the client.
 
-   An exchange is @@@ the thing with tokens and not MIDs - should check
-   with OSCOAP, i never really considered it there, and it didn't happen
-   in the tests
+   [Author's note: At a later stage of this draft, the possibility of
+   moving the Request-Tag value into the AAD as to not spend transmitted
+   bytes on it, eg. by mandating OSCOAP clients to use the partial IV as
+   Request-Tag. This requires ensured agreement between server and
+   client about whether or not a Request-Tag is present, which can
+   hopefully be obtained in the analysis of the various forms a
+   blockwise exchange can take.]
 
-   Request Discriminator: An opaque identifier chosen by the client.  It
-   can be absent or a string of up to 8 bytes, including the empty
-   string.  The phrasing as two words always indicates such a value,
-   while Request-Discriminator (with dash) is the CoAP option in which
-   it is transferred.
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
 
-3.  The Request-Discriminator option
+   The terms "payload" and "body" are used as in [RFC7959].  The
+   complete interchange of a request and a response body is called a
+   REST "operation", while a request and response message (as matched by
+   their tokens) is called an "exchange".
+
+2.  Blockwise transfer cases
+
+   There are several shapes a blockwise exchange can take, named here
+   for further reference.  Requests or responses bodies are called
+   "small" or "large" here if they do or do not, respectively, fit in a
+   single message.  Empty bodies are small.
+
+   [Author's note: I'd appreciate real examples to replace the more
+   contrived ones; the worst are marked with (?).]
+
+   o  _NN_: Request and response bodies are both small.  No
+      fragmentation happens.
+
+      Examples: GETs to sensors, PUTs to actors.
+
+   o  _NS_: A small request causes a large response, which gets
+      fragmented and sequentially fetched by the client.
+
+      Examples: GETting an unfiltered link-format list, PUTting a
+      compressed image to a picture frame that decides to return its
+      (decompressed) state in full in the response(?).
+
+
+
+
+
+Amsuess                Expires September 18, 2017               [Page 3]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+   o  _NR_: A small request is used to access a large one at random
+      offsets.
+
+      Examples: Inspecting a device's exposed memory.
+
+   o  _SN_: A large request is sent in sequential blocks with a small
+      (typically empty) response.
+
+      The server can, after any block, indicate that it has processed
+      the blocks so far, and send a status for the processed ones.
+
+      Examples: FETCHing a complex query, POSTing one's resource list to
+      a resource directory.
+
+   o  _RN_: A large request is sent in a random-access pattern,
+      resulting in a small response(s) (typically, one response each, as
+      the server would in that scenario send successful responses after
+      each block or small groups of blocks.
+
+      Examples: Storing data in a memory region of a device. (?)
+
+   o  _SR_, _RR_: Large requests (sequentially or randomly requested)
+      that have their large responses fetched in random access patterns
+      - these cases are explicitly forbidden in blockwise transfer
+      ([RFC7959] section 2.7).
+
+   o  _RS_: [That's a tough one.  A) I can't come up with examples, and
+      B) the same section 2.7 says that Block2 processing starts when
+      the _last_ block is done, implying that the request is sequential
+      but not outright prescribing it.  Furthermore, can there be
+      inbetween successful replies? ]
+
+   o  _SS_: A large request is sent sequentially, and the large response
+      is fetched in sequential blocks after the request has been
+      transmitted in full.
+
+   [Note that the _NS_ picture frame example is by far the worst and
+   farest-fetched.  I'd like to have an example of a non-safe request
+   resulting in fragmented responses, but that behavior is usually
+   discouraged (PUT responses typically being empty, POST responses
+   bearing a Location), but not outright forbidden, and catered for in
+   blockwise where it comes to combined use of Block1 and Block2.]
+
+   [Missing: analysis]
+
+
+
+
+
+
+
+Amsuess                Expires September 18, 2017               [Page 4]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+3.  The Request-Tag option
 
    A new option is defined for all request methods:
 
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
     | No. | C | U | N | R | Name                  | Format | Length | Default |
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | TBD | x | x | - |   | Request-Discriminator | opaque |    0-8 | (none)  |
+    | TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
     +-----+---+---+---+---+-----------------------+--------+--------+---------+
 
     C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
 
                          Figure 1: Option summary
+
+   [Resume moving this from Request-Discriminator to Request-Tag here]
 
    It is critical (because mechanisms may rely on endpoint identities
    not to be conflated), unsafe (because the channels implied by
@@ -161,15 +261,6 @@ Internet-Draft        Request-Discriminator option            March 2017
    bear their corresponding (via the token @@@ or better refer to
    Exchange definition?) request's discriminator.
 
-
-
-
-
-Amsuess                Expires September 18, 2017               [Page 3]
-
-Internet-Draft        Request-Discriminator option            March 2017
-
-
    If a request that uses Request-Discriminator is rejected with 4.02
    Bad Option, the client SHOULD retry the request without it, but only
    if and when
@@ -180,6 +271,17 @@ Internet-Draft        Request-Discriminator option            March 2017
    o  the application does not use distinct Request Discriminators to
       preclude out-of-order delivery on the same endpoint.
 
+
+
+
+
+
+
+Amsuess                Expires September 18, 2017               [Page 5]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
 4.  For inclusion in OSCOAP
 
    @@@ if this stays a document of its own, oscoap should make a
@@ -189,8 +291,8 @@ Internet-Draft        Request-Discriminator option            March 2017
    with a Request Discriminator.  The same Request Discriminator MUST
    NOT be reused within a security context unless every single block
    sent has elicted a protected response (and its sequence number is
-   consequently marked used). (@@@ if we're cautious, we could s/
-   unless.*/at all/, but i don't see any harm in allowing it.)  OSCOAP
+   consequently marked used). (@@@ if we're cautious, we could "s/
+   unless.*/at all/", but i don't see any harm in allowing it.)  OSCOAP
    requires that out-of-order delivery of blockwise transfers is caught
    by the Request-Discriminator option, so a client MUST NOT fall back
    to not using the Request-Discriminator option if it encounters a 4.02
@@ -219,13 +321,6 @@ Internet-Draft        Request-Discriminator option            March 2017
 
    @@@ this is more of a verbal patch than something actually includable
 
-
-
-Amsuess                Expires September 18, 2017               [Page 4]
-
-Internet-Draft        Request-Discriminator option            March 2017
-
-
    The associated Request Discriminator will need to be included in the
    AAD.  Whether we include that in the request too to keep the AAD the
    same both for request and response, or have it in responses only, I
@@ -233,6 +328,15 @@ Internet-Draft        Request-Discriminator option            March 2017
 
    The Request-Discriminator option is added to the "E*" category and
    like and listed together with Block1/2.
+
+
+
+
+
+Amsuess                Expires September 18, 2017               [Page 6]
+
+Internet-Draft             Request-Tag option                 March 2017
+
 
 5.  Notes on applications
 
@@ -274,20 +378,21 @@ Internet-Draft        Request-Discriminator option            March 2017
       client.  This is not possible with some constrained
       implementations (which typically get their one static socket from
       the operating system).  Moreover, for the OSOCAP inner-bockwise
-
-
-
-Amsuess                Expires September 18, 2017               [Page 5]
-
-Internet-Draft        Request-Discriminator option            March 2017
-
-
       application, the best equivalent would be starting another
       context, which is application dependent and very costly.
 
       Moreover, some transports do not have any such variability (@@@
       over-serial, or is there something more complete that has the same
       limitation?)
+
+
+
+
+
+Amsuess                Expires September 18, 2017               [Page 7]
+
+Internet-Draft             Request-Tag option                 March 2017
+
 
    o  extend the blockwise mechanism with another option: That would not
       make things easier in the author's opinion.
@@ -331,19 +436,19 @@ Internet-Draft        Request-Discriminator option            March 2017
 
    Alternatives under current consideration are:
 
-
-
-Amsuess                Expires September 18, 2017               [Page 6]
-
-Internet-Draft        Request-Discriminator option            March 2017
-
-
    o  Request-Tag: More on the Block1 application side, in parallel to
       the ETag that the client uses to make sure the responses to its
       Block2 request match up.
 
       Could lead to confusion when used in any context that relies on
       endpoints but is not blockwise.
+
+
+
+Amsuess                Expires September 18, 2017               [Page 8]
+
+Internet-Draft             Request-Tag option                 March 2017
+
 
    o  Endpoint-Discriminator: On the other end of the spectrum.
       Technically correct, but its use in a blockwise transfer is not
@@ -386,14 +491,6 @@ Internet-Draft        Request-Discriminator option            March 2017
    The Request Discriminator is limited in its used between a pair of
    end points.  If used conservatively (ie. only when necessary, and
    with as-small-as-possible random discriminators), it only indicates
-
-
-
-Amsuess                Expires September 18, 2017               [Page 7]
-
-Internet-Draft        Request-Discriminator option            March 2017
-
-
    that (and roughly how many) operations that require distinct
    endpoints are in simultaneous use or have previously been
    unsuccessful.
@@ -401,6 +498,14 @@ Internet-Draft        Request-Discriminator option            March 2017
    When used to preclude out-of-order situations between endpoints (as
    for example in OSCOAP), it is essential that implementations store
    the usable state of a discriminator for as long as required (eg. in
+
+
+
+Amsuess                Expires September 18, 2017               [Page 9]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
    parallel with sequence numbers).  Failure to do so leads to reuse of
    a discriminator, and thus opens up the possibility of replays.
 
@@ -431,6 +536,11 @@ Internet-Draft        Request-Discriminator option            March 2017
 
 12.1.  Normative References
 
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
+
    [RFC7252]  Shelby, Z., Hartke, K., and C. Bormann, "The Constrained
               Application Protocol (CoAP)", RFC 7252,
               DOI 10.17487/RFC7252, June 2014,
@@ -445,10 +555,18 @@ Internet-Draft        Request-Discriminator option            March 2017
 
 
 
-Amsuess                Expires September 18, 2017               [Page 8]
-
-Internet-Draft        Request-Discriminator option            March 2017
 
+
+Amsuess                Expires September 18, 2017              [Page 10]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+   [I-D.mattsson-core-coap-actuators]
+              Mattsson, J., Fornehed, J., Selander, G., and F.
+              Palombini, "Controlling Actuators with CoAP", draft-
+              mattsson-core-coap-actuators-02 (work in progress),
+              November 2016.
 
    [RFC7959]  Bormann, C. and Z. Shelby, Ed., "Block-Wise Transfers in
               the Constrained Application Protocol (CoAP)", RFC 7959,
@@ -495,10 +613,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-Amsuess                Expires September 18, 2017               [Page 9]
+Amsuess                Expires September 18, 2017              [Page 11]
