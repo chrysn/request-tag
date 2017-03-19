@@ -83,8 +83,8 @@ interchange of a request and a response body is called a REST "operation",
 while a request and response message (as matched by their tokens) is called an
 "exchange".
 
-Blockwise transfer cases
-========================
+Blockwise transfer cases {#transfercases}
+=========================================
 
 There are several shapes a blockwise exchange can take, named here for further
 reference. Requests or responses bodies are called "small" or "large" here if
@@ -364,111 +364,40 @@ OSCOAP does not provide integrity protection of the response body.
 Rationale
 =========
 
-\[Resume moving this from Request-Discriminator to Request-Tag here\]
-
 This part is informative and serves to illustrate why this option is
 necessary, and how it is different from similar concepts.
 
-Why not use...
+Why not...
 
-* another port: Proxy implementations can work around the simultaneous
-  transfer restrictions by using different ports as a client. This is
-  not possible with some constrained implementations (which typically
-  get their one static socket from the operating system). Moreover, for
-  the OSOCAP inner-bockwise application, the best equivalent would be
-  starting another context, which is application dependent and very
-  costly.
+* forbid out-of-order sequence numbers in blockwise?
 
-  Moreover, some transports do not have any such variability (@@@
-  over-serial, or is there something more complete that has the same
-  limitation?)
+  This could be a viable path. To see whether this works, the {{transfercases}}
+  chapter would hopefully help. (It should not rule out legitimate cases of
+  random acces, after all).
 
-* extend the blockwise mechanism with another option: That would not
-  make things easier in the author's opinion.
+  This would exclude other uses of the option like that in {{appendix-proxy}}.
 
-* put a discriminator into OSCOAP: That would have the same effect for
-  the OSCOAP inner-blockwise case. It would still not allow different
-  OSCOAP requests to happen concurrently on a device (especially in the
-  presence of proxying).
+* put an option in OSCOAP?
 
-How is this identifier different from the...
+  This would work, and might in the end happen with compression of the
+  Request-Tag option into the AAD.
 
-* message ID and token: Both are defined on the same level as the
-  Request Discriminator (that is, from endpoint to endpoint), but the
-  discriminator has an even longer lifetime than the token in that it
-  at least spans all the requests transferred within a blockwise
-  transfer.
+  As before, this would exclude other uses cases.
 
-* OSCOAP's sequence number: As the above, the sequence number is only
-  used for a single exchange, and does not span a blockwise transfer.
-  Implementations might, however, opt to use the sequence number of the
-  first package of a blockwise transfer as the Request Discriminator for
-  the whole transfer.
+* open up an endpoint per operation?
 
-* ETag: While the Request Discriminator option serves a similar purpose
-  in blockwise transfers as the ETag (ETag allows the client to filter
-  non-matching Block2 responses, Request-Discriminator allows the server
-  to filter non-matching Block1 requests), the ETag is stably determined
-  by the server (and can thus be used for caching), while the Request
-  Discriminator is an ephemeral label used exclusively during the
-  transfer.
+  This was explored in an earlier draft version as Request-Discriminator, which
+  would have been a lightweight way to "multiplex" different endpoints (at
+  least for the purpose of blockwise making references to them) into one
+  secured connection.
 
-The naming of options
-=====================
+  It is still the author's assumption that this would laregly be equivalent to
+  the Request-Tag both in the OSCOAP application and in the use case explored
+  in {{appendix-proxy}}, but the Request-Tag path is being explored currently
+  because it is easier to understand, explain and reason about, while the
+  Request-Discriminator way might result in less normative text with more
+  comments, and possibly have similar effects in implementation codebases.
 
-@@@ this section will obviously be removed over time.
-
-The naming of options is a difficult matter -- especially here where the
-use to the application (describing which requests of a blockwise bunch
-belong together) deviates from what it by its definition (and in
-implementation) does, that is, provide a lightweight sub-channel inside
-the channel described by the endpoint address.
-
-Alternatives under current consideration are:
-
-* Request-Tag: More on the Block1 application side, in parallel to the
-  ETag that the client uses to make sure the responses to its Block2
-  request match up.
-
-  Could lead to confusion when used in any context that relies on
-  endpoints but is not blockwise.
-
-* Endpoint-Discriminator: On the other end of the spectrum. Technically
-  correct, but its use in a blockwise transfer is not immediately
-  obvious.
-
-* Request-Discriminator: Some middle ground. I'd understand it not as
-  much as something that discriminates between requests, but a
-  discriminator introduced by the requester.
-
-Standard hygiene
-================
-
-@@@ if this stays in at all, it'll be shortened into some kind of
-'additional considerations' -- depending on how much discussion there is
-on it.
-
-This draft does something that might be considered dirty in terms of RFC
-interaction: It defines, when implemented, additional semantics into the
-term "same endpoint" -- one could say that it hijacks the term to be an
-extension point. This is done right now because:
-
-* It keeps RFC interdependencies low.
-
-* It is compatible in the sense that whoever does not implement this
-  option (and consequently responds 4.02 Bad Option to its use) do
-  trivially implement the changed semantics by just not allowing the
-  Request-Discriminator option to take any other value than none.
-
-* It allows later or concurrent drafts to use the "same endpoint"
-  semantics and optionally utilize this extension without mandating it
-  as a dependency.
-
-* RFC7252 already defines "Endpoint" to include the security
-  association. Given this protects blockwise transfers against a very
-  small range of attacks (those where the attacker can't modify the
-  message, but delay it), this can be seen as a security mode and then
-  plug into the extension point described in RFC7252 4.1.
 
 Security Considerations
 =======================
