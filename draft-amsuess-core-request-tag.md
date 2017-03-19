@@ -63,7 +63,9 @@ of this might move back into OSCOAP -- for now, the matter is explored here.\]
 
 The proposed method of matching blocks to each other is the introduction of a
 Request-Tag option, which is similar to the ETag sent along with responses, but
-ephemeral and set by the client.
+ephemeral and set by the client. It is phrased in a way that it can not only be
+used in OSCOAP, but also by other security mechanisms (eg. CoAP over DTLS), or
+for other purposes (see {{appendix-proxy}}).
 
 \[Author's note: At a later stage of this draft, the possibility of moving the
 Request-Tag value into the AAD as to not spend transmitted bytes on it, eg. by
@@ -143,136 +145,226 @@ Block1 and Block2.\]
 
 \[Missing: analysis\]
 
+Attack scenarios
+----------------
+
+This section outlines some attacks that should be mitigated by the Request-Tag
+option. They are written with a malicious proxy between client and server in
+mind; whether that is a forward, reverse, transparent proxy, or any other
+entity on the data path that can intercept and inject packages into the
+communication is irrelevant to the attacks.
+
+The illustrations draw terminology (especially the "@" and "X" symbols) from
+{{I-D.mattsson-core-coap-actuators}}.
+
+The scenarios typically require the attacker to have a good idea of the content
+of the packages that are transferred. Note that the attacker can see the codes
+of the messages.
+
+### "Promote Valjean" (on blockwise case SN)
+
+In this scenario, blocks from two operations on a POST-accepting resource are
+combined to make the server execute an action that was not intended by the
+authorized client. This works only if the client attempts a second operation
+after first operation failed (due what the attacker made appear like a network
+outage) within the replay window. The client does not receive a confirmation on
+the second operation either, but by the time, the server has already executed
+the unauthorized action.
+
+~~~~~~~~~~
+Client   Foe   Server
+   |      |      |
+   +------------->    POST "incarcerate" (Block1: 0, more to come)
+   |      |      |
+   <-------------+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   +----->@      |    POST "valjean" (Block1: 1, last block)
+   |      |      |
+   +----->X      |    All retransmissions dropped
+   |      |      |
+
+(Client: Odd, but let's go on and promote Javert)
+
+   |      |      |
+   +------------->    POST "promote" (Block1: 0, more to come)
+   |      |      |
+   |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   |      @------>    POST "valjean" (Block1: 1, last block)
+   |      |      |
+   |      X<-----+    2.04 Valjean Promoted
+
+~~~~~~~~~~
+{: #promotevaljean title="Attack example" }
+
+\[Sequence note: the below refers to so-far unexplained semantics of
+Request-Tag, this needs to be resolved.\]
+
+With Request-Tag in place, the client would have assigned a different
+Request-Tag to the "promote" line, and the server would have either reacted to
+the "valjean" POST by incarcerating valjean (if it could keep both operation
+states at the same time), or responded 5.03 to the "promote" request until a
+timeout, or responded 4.08 to the injected "valjean" request.
+
+The client would only have been free to use the same Request-Tag on the
+"promote" POST as on the "incarcerate" POST if, in the meantime, it had
+exchanged enough messages that the latest message of the first use ("valjean")
+is dropped from the server's window, and thus the sever would not accept its
+replay.
+
+### "Free the hitman" (blockwise case SN)
+
+In this example, mismatched Block1 packages against a resource that passes
+judgement are mixed up to create a response matched to the wrong operation.
+
+Again, a first operation is aborted by the proxy ("Homeless stole apples. What
+shall we do with him?" -- "Set him free."), and a part of that operation is
+later used in a different operation to prime the server for responding
+leniently to another operation that would originally have been "Hitman killed
+someone. What shall we do with him?" -- "Hang him.".
+
+~~~~~~~~~~
+Client   Foe   Server
+   |      |      |
+   +----->@      |    POST "Homeless stole apples. Wh"
+   |      |      |        (Block1: 0, more to come)
+
+(Client: We'll try that one later again; for now, we have something more
+urgent:)
+
+   |      |      |
+   +------------->    POST "Hitman killed someone. Wh"
+   |      |      |        (Block1: 0, more to come)
+   |      |      |
+   |      @<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   |      @------>    POST "Homeless stole apples. Wh"
+   |      |      |        (Block1: 0, more to come)
+   |      |      |
+   |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   <------@      |    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   +------------->    POST "at shall we do with him?"
+   |      |      |        (Block1: 1, last block)
+   |      |      |
+   <-------------+    2.05 "Set him free."
+                          (Block1: 1 received, and this is the result)
+~~~~~~~~~~
+{: #freethehitman title="Attack example" }
+
+
+\[More examples would help, especially for the other blockwise cases. Is it
+relevant to distinguish non-piggybacked responses?\]
+
 The Request-Tag option
 ======================
 
 A new option is defined for all request methods:
 
 ~~~~~~~~~~
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | No. | C | U | N | R | Name                  | Format | Length | Default |
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    
-    C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| No. | C | U | N | R | Name                  | Format | Length | Default |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+
+C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
 ~~~~~~~~~~
 {: #optsum title="Option summary"}
 
-\[Resume moving this from Request-Discriminator to Request-Tag here\]
+It is critical (because a client that wants to secure its request body can't
+have a server ignore it), unsafe (because it needs to understood by any proxy
+that does blockwise (dis)assembly), and not repeatable. (\[Does "unsafe" make
+nocachekey irrelevant? I think so.\])
 
-It is critical (because mechanisms may rely on endpoint identities not
-to be conflated), unsafe (because the channels implied by endpoint
-identities terminate at proxies), not repeatable. (@@@ unsafe makes
-nocachekey irrelevant, but should we or not set it to ease proxy
-implementations?)
+A client MAY set the Request-Tag option to indicate that the receiving server
+MUST NOT act on any block in the same blockwise operation that has a different
+Request-Tag set.
 
-A client may set a Request-Discriminator option to indicate that the
-message's Endpoint is to be augmented with the opaque option value. The
-server MUST NOT treat the message's endpoint as equal to any other
-message's endpoint that does not have the identical
-Request-Discriminator. The absence of the option and a zero-length
-option are distinct. (@@@ i wouldn't insist on that -- especially with
-the inclusion in the AAD it might be better to have absence and h""
-equal, so we don't have variable types in the AAD)
+\[Note on future development: This is probably where OSCOAP compression could
+come in and say that when OSCOAP and blockwise is in use, the client MUST set a
+Request-Tag if and only if it sets a Block1 option in descriptive usage, and is
+value MUST be the partial IV of that message. That value MUST then be included
+somewhere in the AAD of every block message *after* the first, where this
+compression proposal so far fails because the verifying server would have to
+know at AAD-building time whether or not this is an inner blockwise request.\]
 
-The option is not used in responses. Response messages implicitly bear
-their corresponding (via the token @@@ or better refer to Exchange
-definition?) request's discriminator.
+If the Request-Tag option is set, the client MAY perform simultaneous
+operations that utilize Block1 fragmentation from the same endpoint towards the
+same resource, lifting the limitation of {{RFC7959}} section 2.5. The server is
+still under no obligation to keep state of more than one transaction. When an
+operation is in progress and a second one can not be served at the same time,
+the server MUST either respond to the second request with a 5.03 response code
+(in which it SHOULD indicate the time it is willing to wait for additional
+blocks in the first open operation in the Max-Age option), or cancel the first
+operation by responding 4.08 in subsequent exchanges in the first operations.
+Clients that see the latter behavior SHOULD \[or MUST?\] fall back to
+serializing requests as it would without the Request-Tag option.
 
-If a request that uses Request-Discriminator is rejected with 4.02 Bad
-Option, the client SHOULD retry the request without it, but only if and
-when
+\[Author's note: The above paragraph sounds problematic to me. For further
+exploration of those error cases, I'd need to know how simultaneous operations
+(even on different resources) from different endpoints are handled in
+constrained clients; I only did stateless operations in constrained devices so
+far.\]
 
-* no limitations on simultaneous operations on the same endpoint are in
-  place, and
+The option is not used in responses.
 
-* the application does not use distinct Request Discriminators to
-  preclude out-of-order delivery on the same endpoint.
+If a request that uses Request-Tag is rejected with 4.02 Bad Option, the client
+MAY retry the operation without it, but it then needs to serialize all
+operations that affect the same resource. Security requirements can forbid
+dropping the Request-Tag option.
 
 
 For inclusion in OSCOAP
 =======================
 
-@@@ if this stays a document of its own, oscoap should make a normative
-reference to it and state something like
+\[Editor's note: If this stays a document of its own, OSCOAP should make a
+normative reference to it and state something like:\]
 
-Whenever the Block1 option is used as inner option, it is associated
-with a Request Discriminator. The same Request Discriminator MUST NOT be
-reused within a security context unless every single block sent has
-elicted a protected response (and its sequence number is consequently
-marked used). (@@@ if we're cautious, we could `s/unless.*/at all/`, but i
-don't see any harm in allowing it.) OSCOAP requires that out-of-order
-delivery of blockwise transfers is caught by the Request-Discriminator
-option, so a client MUST NOT fall back to not using the
-Request-Discriminator option if it encounters a 4.02 Bad Option
-response.
+Whenever the Block1 option is used as inner option, the Request-Tag option must
+be used. The option value must not be reused until any request messages sent in
+a different exchange with the same option value have been answered and their
+answers have been successfully unprotected, or the sender sequence numbers are
+considered invalid by the server (as proven by a response to a request that
+bore a request sequence number greater than the old messages' sequence number
+plus the window size).
 
-Note that this does not require the use of the Request-Discriminator in
-many cases. An application implementing OSCOAP MUST use that option at
-least when a Block1 request has not been losslessly concluded[*], and a
-server MUST NOT respond with 4.02 due to the presence of a
-Request-Discriminator option. (@@@ or they could declare the complete
-context invalid, but i don't think we want contexts to be that volatile)
+If the client follows the suggestion of only storing its own sequence numbers
+to persistent memory every K requests, it needs to make sure to mark seqno plus
+windowsize as used, because the next windowsize options can only be used with
+certain constraints.
 
-[*]: Simple package loss will not make a discriminator unusable, because
-there is still CoAP retransmission in place. Only when the block
-transfer is aborted, or when the same block gets sent with a different
-sequence number (@@@ may that be at all?), the discriminator is unusable
-for any further blockwise transfer.
+\[Author's note: We could ease the requirement for possibly difficult
+compression here by allowing no Request-Tag option too under the same reuse
+rules (ie. it'd be OK the first time and then again after ACKs or some
+traffic). Clients could then even work around ever needing to send the option
+by pushing the failed attempts out of the window, although I'd consider that
+bad behavior.\]
 
-A Request-Discriminator option MAY be used when initializing a Block2
-transfer as well. A server SHOULD, inside a Request-Discriminator, only
-send response messages with matching ETags if they can be expected to
-assemble into a consistent representation again. (@@@ imo that's a
-requirement that there already is from the ETags themselves. jim, do you
-think this is a starting point for your concerns about validating the
-whole message?)
+\[Author's note: AFAICT this would be the first actual use of the window size;
+so far client and server can well interact with different replay window sizes.
+Probably it's OK to be the first user of the parameter.\]
 
 
-@@@ this is more of a verbal patch than something actually includable
+\[For the options list:\]
 
-The associated Request Discriminator will need to be included in the
-AAD. Whether we include that in the request too to keep the AAD the
-same both for request and response, or have it in responses only, I
-don't care.
+The Request-Discriminator option is added to the "E=\*" category in the options
+list, and is listed together with Block1/2 in all other places they are
+mentioned.
 
-The Request-Discriminator option is added to the "E*" category and
-like and listed together with Block1/2.
+\[For somewhere else (?):\]
 
+A server responding an inner Block2 option SHOULD use an ETag on it, even if
+the result is not cachable (eg. the response to a POST request), and take
+reasonable measures against identical ETags on distinct states, otherwise
+OSCOAP does not provide integrity protection of the response body.
 
-Notes on applications
-=====================
-
-@@@ spell out example exchanges: proxy forwarding multiple requests,
-oscoap application. include a case with non-piggybacked reponses.
-
-~~~~~~~~~~
-            Client              Foe         Server
-    
-    POST "incarcerate"(1/2) --->  --->
-                           <---  <---   2.31 CONTINUE
-    POST "valjean"(2/2)     --->@
-                           <---RST
-    
-    (Client: Odd, but let's go on and promote Javert)
-    
-    POST "promote"(1/2)    --->  --->
-                          <---  <---    2.31 CONTINUE
-                               @ --->
-                                <---    2.04 Valjean Promoted!
-    
-    (The @ indicates a maliciously delayed / wormholed package as used in
-~~~~~~~~~~
-{: #promotevaljcean title="Attack example" }
-
-this can't happen in oscoap now any more because the incomplete first
-POST permanently poisons the first request's request discriminator, and
-the second request will have a different one, for which the server will
-not accept the delayed "valjean" any more.
 
 Rationale
 =========
+
+\[Resume moving this from Request-Discriminator to Request-Tag here\]
 
 This part is informative and serves to illustrate why this option is
 necessary, and how it is different from similar concepts.
@@ -403,22 +495,13 @@ considerations.
 IANA Considerations
 ===================
 
-@@@ have a number assigned and the option known
-
-References
-==========
-
-CoAP
-
-@@@ i think i can get away with only having coap as a normative
-reference here (plus 2119 if keywords are used), though blockwise might
-be required too due to it updating coap.
-
-Informative References
-----------------------
-
-OSCOAP
-blockwise
-coap-over-serial if referenced
+\[Missing: have a number assigned and the option published\]
 
 --- back
+
+# Use of Request-Tag by proxies {#appendix-proxy}
+
+(something along the lines of) It is currently rare that a proxy ever need to
+serialize blockwise transactions. It could need to at any time, though.
+Especially with OSCOAP. This is how it could use Request-Tag to parallelize, if
+it can afford the state...
