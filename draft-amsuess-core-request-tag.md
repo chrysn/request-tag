@@ -98,6 +98,8 @@ ones; the worst are marked with (?).\]
 
   Examples: GETs to sensors, PUTs to actors.
 
+  Integrity protection: Request/response matching is sufficient.
+
 * *NS*: A small request causes a large response, which gets fragmented and
   sequentially fetched by the client.
 
@@ -105,9 +107,26 @@ ones; the worst are marked with (?).\]
   to a picture frame that decides to return its (decompressed) state in full in
   the response(?).
 
+  Integrity protection: The full request is copied in each subsequent request.
+
+  Changes in the response need to be covered by the server setting a unique
+  ETag.
+
+  Client and server could still disagree over whether the requests constitute a
+  single or distinct REST operations; that's a general issue that should be
+  pointed out. Note, however, that the *SS* case *does* provide that
+  distinction! \["making non-blockwise as safe as blockwise" is not part of the
+  mission statement (only the other way round), so probably we should accept
+  this here and not try to provide that assurance -- it would make every
+  request a Request-Tag candidate, and rule out anything but NSTART=1 because
+  the client couldn't know whether Block2 will be used.\]
+
 * *NR*: A small request is used to access a large one at random offsets.
 
   Examples: Inspecting a device's exposed memory.
+
+  Integrity protection: Likewith *NS*, just that the distinction between single
+  and distinct REST operations is presumably \[check!\] not meaningful anyway.
 
 * *SN*: A large request is sent in sequential blocks with a small (typically
   empty) response.
@@ -118,11 +137,20 @@ ones; the worst are marked with (?).\]
   Examples: FETCHing a complex query, POSTing one's resource list to a resource
   directory.
 
+  Integrity protection: The same Request-Tag gets set to all request blocks.
+  The server treats blocks with a different tag (eg. replays from an earlier
+  transmission) as different operations and possibly rejects them as incomplete
+  entities.
+
 * *RN*: A large request is sent in a random-access pattern, resulting in a
   small response(s) (typically, one response each, as the server would in that
   scenario send successful responses after each block or small groups of blocks.
 
   Examples: Storing data in a memory region of a device. (?)
+
+  Integrity porteciton: The client can set a Request-Tag if it wants to group
+  operations, but there is presumably \[check!\] no correlation to protect
+  anyway.
 
 * *SR*, *RR*: Large requests (sequentially or randomly requested) that have
   their large responses fetched in random access patterns -- these cases are
@@ -136,14 +164,20 @@ ones; the worst are marked with (?).\]
 * *SS*: A large request is sent sequentially, and the large response is fetched
   in sequential blocks after the request has been transmitted in full.
 
+  Integrity protection: The client sets a Request-Tag as in the *SN* case. In
+  Block2 phase, ... \[Author, continue here -- I would have expected that the
+  Block2 clocking-out of data happens while continuously retransmitting the
+  last Block1 part, while actually it happens without a Block1 option at all.
+  Still, I'd like to have Request-Tag set, but do we need that actually for
+  protection, or would it just be convenient because otherwise Block2 requests
+  can get mixed up at proxying?\]
+
 \[Note that the *NS* picture frame example is by far the worst and
 farest-fetched. I'd like to have an example of a non-safe request resulting in
 fragmented responses, but that behavior is usually discouraged (PUT responses
 typically being empty, POST responses bearing a Location), but not outright
 forbidden, and catered for in blockwise where it comes to combined use of
 Block1 and Block2.\]
-
-\[Missing: analysis\]
 
 Attack scenarios
 ----------------
@@ -212,7 +246,7 @@ exchanged enough messages that the latest message of the first use ("valjean")
 is dropped from the server's window, and thus the sever would not accept its
 replay.
 
-### "Free the hitman" (blockwise case SN)
+### "Free the hitman" (blockwise case SN or SS)
 
 In this example, mismatched Block1 packages against a resource that passes
 judgement are mixed up to create a response matched to the wrong operation.
@@ -253,6 +287,8 @@ urgent:)
 ~~~~~~~~~~
 {: #freethehitman title="Attack example" }
 
+The example works equivalently with longer responses, placing it in the *SS*
+category instead of the *SN*.
 
 \[More examples would help, especially for the other blockwise cases. Is it
 relevant to distinguish non-piggybacked responses?\]
