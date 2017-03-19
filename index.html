@@ -281,17 +281,15 @@ address {
 <link href="#rfc.section.2" rel="Chapter" title="2 Blockwise transfer cases"/>
 <link href="#rfc.section.2.1" rel="Chapter" title="2.1 Attack scenarios"/>
 <link href="#rfc.section.2.1.1" rel="Chapter" title="2.1.1 &#x201C;Promote Valjean&#x201D; (on blockwise case SN)"/>
-<link href="#rfc.section.2.1.2" rel="Chapter" title="2.1.2 &#x201C;Free the hitman&#x201D; (blockwise case SN)"/>
+<link href="#rfc.section.2.1.2" rel="Chapter" title="2.1.2 &#x201C;Free the hitman&#x201D; (blockwise case SN or SS)"/>
 <link href="#rfc.section.3" rel="Chapter" title="3 The Request-Tag option"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 For inclusion in OSCOAP"/>
 <link href="#rfc.section.5" rel="Chapter" title="5 Rationale"/>
-<link href="#rfc.section.6" rel="Chapter" title="6 The naming of options"/>
-<link href="#rfc.section.7" rel="Chapter" title="7 Standard hygiene"/>
-<link href="#rfc.section.8" rel="Chapter" title="8 Security Considerations"/>
-<link href="#rfc.section.9" rel="Chapter" title="9 IANA Considerations"/>
-<link href="#rfc.references" rel="Chapter" title="10 References"/>
-<link href="#rfc.references.1" rel="Chapter" title="10.1 Normative References"/>
-<link href="#rfc.references.2" rel="Chapter" title="10.2 Informative References"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 Security Considerations"/>
+<link href="#rfc.section.7" rel="Chapter" title="7 IANA Considerations"/>
+<link href="#rfc.references" rel="Chapter" title="8 References"/>
+<link href="#rfc.references.1" rel="Chapter" title="8.1 Normative References"/>
+<link href="#rfc.references.2" rel="Chapter" title="8.2 Informative References"/>
 <link href="#rfc.appendix.A" rel="Chapter" title="A Use of Request-Tag by proxies"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
@@ -362,17 +360,15 @@ address {
 <li>2.   <a href="#rfc.section.2">Blockwise transfer cases</a></li>
 <ul><li>2.1.   <a href="#rfc.section.2.1">Attack scenarios</a></li>
 <ul><li>2.1.1.   <a href="#rfc.section.2.1.1">&#8220;Promote Valjean&#8221; (on blockwise case SN)</a></li>
-<li>2.1.2.   <a href="#rfc.section.2.1.2">&#8220;Free the hitman&#8221; (blockwise case SN)</a></li>
+<li>2.1.2.   <a href="#rfc.section.2.1.2">&#8220;Free the hitman&#8221; (blockwise case SN or SS)</a></li>
 </ul></ul><li>3.   <a href="#rfc.section.3">The Request-Tag option</a></li>
 <li>4.   <a href="#rfc.section.4">For inclusion in OSCOAP</a></li>
 <li>5.   <a href="#rfc.section.5">Rationale</a></li>
-<li>6.   <a href="#rfc.section.6">The naming of options</a></li>
-<li>7.   <a href="#rfc.section.7">Standard hygiene</a></li>
-<li>8.   <a href="#rfc.section.8">Security Considerations</a></li>
-<li>9.   <a href="#rfc.section.9">IANA Considerations</a></li>
-<li>10.   <a href="#rfc.references">References</a></li>
-<ul><li>10.1.   <a href="#rfc.references.1">Normative References</a></li>
-<li>10.2.   <a href="#rfc.references.2">Informative References</a></li>
+<li>6.   <a href="#rfc.section.6">Security Considerations</a></li>
+<li>7.   <a href="#rfc.section.7">IANA Considerations</a></li>
+<li>8.   <a href="#rfc.references">References</a></li>
+<ul><li>8.1.   <a href="#rfc.references.1">Normative References</a></li>
+<li>8.2.   <a href="#rfc.references.2">Informative References</a></li>
 </ul><li>Appendix A.   <a href="#rfc.appendix.A">Use of Request-Tag by proxies</a></li>
 <li><a href="#rfc.authors">Author's Address</a></li>
 
@@ -395,23 +391,22 @@ address {
 <p id="rfc.section.1.p.6">[Author&#8217;s note: At a later stage of this draft, the possibility of moving the Request-Tag value into the AAD as to not spend transmitted bytes on it, eg. by mandating OSCOAP clients to use the partial IV as Request-Tag. This requires ensured agreement between server and client about whether or not a Request-Tag is present, which can hopefully be obtained in the analysis of the various forms a blockwise exchange can take.]</p>
 <p id="rfc.section.1.p.7">The key words &#8220;MUST&#8221;, &#8220;MUST NOT&#8221;, &#8220;REQUIRED&#8221;, &#8220;SHALL&#8221;, &#8220;SHALL NOT&#8221;, &#8220;SHOULD&#8221;, &#8220;SHOULD NOT&#8221;, &#8220;RECOMMENDED&#8221;,  &#8220;MAY&#8221;, and &#8220;OPTIONAL&#8221; in this document are to be interpreted as described in <a href="#RFC2119">[RFC2119]</a>.</p>
 <p id="rfc.section.1.p.8">The terms &#8220;payload&#8221; and &#8220;body&#8221; are used as in <a href="#RFC7959">[RFC7959]</a>. The complete interchange of a request and a response body is called a REST &#8220;operation&#8221;, while a request and response message (as matched by their tokens) is called an &#8220;exchange&#8221;.</p>
-<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#blockwise-transfer-cases" id="blockwise-transfer-cases">Blockwise transfer cases</a></h1>
+<h1 id="rfc.section.2"><a href="#rfc.section.2">2.</a> <a href="#transfercases" id="transfercases">Blockwise transfer cases</a></h1>
 <p id="rfc.section.2.p.1">There are several shapes a blockwise exchange can take, named here for further reference. Requests or responses bodies are called &#8220;small&#8221; or &#8220;large&#8221; here if they do or do not, respectively, fit in a single message. Empty bodies are small.</p>
 <p id="rfc.section.2.p.2">[Author&#8217;s note: I&#8217;d appreciate real examples to replace the more contrived ones; the worst are marked with (?).]</p>
 <p/>
 
 <ul>
-  <li><em>NN</em>: Request and response bodies are both small. No fragmentation happens.  <br/><br/> Examples: GETs to sensors, PUTs to actors.</li>
-  <li><em>NS</em>: A small request causes a large response, which gets fragmented and sequentially fetched by the client.  <br/><br/> Examples: GETting an unfiltered link-format list, PUTting a compressed image to a picture frame that decides to return its (decompressed) state in full in the response(?).</li>
-  <li><em>NR</em>: A small request is used to access a large one at random offsets.  <br/><br/> Examples: Inspecting a device&#8217;s exposed memory.</li>
-  <li><em>SN</em>: A large request is sent in sequential blocks with a small (typically empty) response.  <br/><br/> The server can, after any block, indicate that it has processed the blocks so far, and send a status for the processed ones.  <br/><br/> Examples: FETCHing a complex query, POSTing one&#8217;s resource list to a resource directory.</li>
-  <li><em>RN</em>: A large request is sent in a random-access pattern, resulting in a small response(s) (typically, one response each, as the server would in that scenario send successful responses after each block or small groups of blocks.  <br/><br/> Examples: Storing data in a memory region of a device. (?)</li>
+  <li><em>NN</em>: Request and response bodies are both small. No fragmentation happens.  <br/><br/> Examples: GETs to sensors, PUTs to actors.  <br/><br/> Integrity protection: Request/response matching is sufficient.</li>
+  <li><em>NS</em>: A small request causes a large response, which gets fragmented and sequentially fetched by the client.  <br/><br/> Examples: GETting an unfiltered link-format list, PUTting a compressed image to a picture frame that decides to return its (decompressed) state in full in the response(?).  <br/><br/> Integrity protection: The full request is copied in each subsequent request.  <br/><br/> Changes in the response need to be covered by the server setting a unique ETag.  <br/><br/> Client and server could still disagree over whether the requests constitute a single or distinct REST operations; that&#8217;s a general issue that should be pointed out. Note, however, that the <em>SS</em> case <em>does</em> provide that distinction! [&#8220;making non-blockwise as safe as blockwise&#8221; is not part of the mission statement (only the other way round), so probably we should accept this here and not try to provide that assurance &#8211; it would make every request a Request-Tag candidate, and rule out anything but NSTART=1 because the client couldn&#8217;t know whether Block2 will be used.]</li>
+  <li><em>NR</em>: A small request is used to access a large one at random offsets.  <br/><br/> Examples: Inspecting a device&#8217;s exposed memory.  <br/><br/> Integrity protection: Likewith <em>NS</em>, just that the distinction between single and distinct REST operations is presumably [check!] not meaningful anyway.</li>
+  <li><em>SN</em>: A large request is sent in sequential blocks with a small (typically empty) response.  <br/><br/> The server can, after any block, indicate that it has processed the blocks so far, and send a status for the processed ones.  <br/><br/> Examples: FETCHing a complex query, POSTing one&#8217;s resource list to a resource directory.  <br/><br/> Integrity protection: The same Request-Tag gets set to all request blocks.  The server treats blocks with a different tag (eg. replays from an earlier transmission) as different operations and possibly rejects them as incomplete entities.</li>
+  <li><em>RN</em>: A large request is sent in a random-access pattern, resulting in a small response(s) (typically, one response each, as the server would in that scenario send successful responses after each block or small groups of blocks.  <br/><br/> Examples: Storing data in a memory region of a device. (?)  <br/><br/> Integrity porteciton: The client can set a Request-Tag if it wants to group operations, but there is presumably [check!] no correlation to protect anyway.</li>
   <li><em>SR</em>, <em>RR</em>: Large requests (sequentially or randomly requested) that have their large responses fetched in random access patterns &#8211; these cases are explicitly forbidden in blockwise transfer (<a href="#RFC7959">[RFC7959]</a> section 2.7).</li>
   <li><em>RS</em>: [That&#8217;s a tough one. A) I can&#8217;t come up with examples, and B) the same section 2.7 says that Block2 processing starts when the <em>last</em> block is done, implying that the request is sequential but not outright prescribing it.  Furthermore, can there be inbetween successful replies? ]</li>
-  <li><em>SS</em>: A large request is sent sequentially, and the large response is fetched in sequential blocks after the request has been transmitted in full.</li>
+  <li><em>SS</em>: A large request is sent sequentially, and the large response is fetched in sequential blocks after the request has been transmitted in full.  <br/><br/> Integrity protection: The client sets a Request-Tag as in the <em>SN</em> case. In Block2 phase, &#8230; [Author, continue here &#8211; I would have expected that the Block2 clocking-out of data happens while continuously retransmitting the last Block1 part, while actually it happens without a Block1 option at all.  Still, I&#8217;d like to have Request-Tag set, but do we need that actually for protection, or would it just be convenient because otherwise Block2 requests can get mixed up at proxying?]</li>
 </ul>
 <p id="rfc.section.2.p.4">[Note that the <em>NS</em> picture frame example is by far the worst and farest-fetched. I&#8217;d like to have an example of a non-safe request resulting in fragmented responses, but that behavior is usually discouraged (PUT responses typically being empty, POST responses bearing a Location), but not outright forbidden, and catered for in blockwise where it comes to combined use of Block1 and Block2.]</p>
-<p id="rfc.section.2.p.5">[Missing: analysis]</p>
 <h1 id="rfc.section.2.1"><a href="#rfc.section.2.1">2.1.</a> <a href="#attack-scenarios" id="attack-scenarios">Attack scenarios</a></h1>
 <p id="rfc.section.2.1.p.1">This section outlines some attacks that should be mitigated by the Request-Tag option. They are written with a malicious proxy between client and server in mind; whether that is a forward, reverse, transparent proxy, or any other entity on the data path that can intercept and inject packages into the communication is irrelevant to the attacks.</p>
 <p id="rfc.section.2.1.p.2">The illustrations draw terminology (especially the &#8220;@&#8221; and &#8220;X&#8221; symbols) from <a href="#I-D.mattsson-core-coap-actuators">[I-D.mattsson-core-coap-actuators]</a>.</p>
@@ -448,7 +443,7 @@ Client   Foe   Server
 <p id="rfc.section.2.1.1.p.2">[Sequence note: the below refers to so-far unexplained semantics of Request-Tag, this needs to be resolved.]</p>
 <p id="rfc.section.2.1.1.p.3">With Request-Tag in place, the client would have assigned a different Request-Tag to the &#8220;promote&#8221; line, and the server would have either reacted to the &#8220;valjean&#8221; POST by incarcerating valjean (if it could keep both operation states at the same time), or responded 5.03 to the &#8220;promote&#8221; request until a timeout, or responded 4.08 to the injected &#8220;valjean&#8221; request.</p>
 <p id="rfc.section.2.1.1.p.4">The client would only have been free to use the same Request-Tag on the &#8220;promote&#8221; POST as on the &#8220;incarcerate&#8221; POST if, in the meantime, it had exchanged enough messages that the latest message of the first use (&#8220;valjean&#8221;) is dropped from the server&#8217;s window, and thus the sever would not accept its replay.</p>
-<h1 id="rfc.section.2.1.2"><a href="#rfc.section.2.1.2">2.1.2.</a> <a href="#free-the-hitman-blockwise-case-sn" id="free-the-hitman-blockwise-case-sn">&#8220;Free the hitman&#8221; (blockwise case SN)</a></h1>
+<h1 id="rfc.section.2.1.2"><a href="#rfc.section.2.1.2">2.1.2.</a> <a href="#free-the-hitman-blockwise-case-sn-or-ss" id="free-the-hitman-blockwise-case-sn-or-ss">&#8220;Free the hitman&#8221; (blockwise case SN or SS)</a></h1>
 <p id="rfc.section.2.1.2.p.1">In this example, mismatched Block1 packages against a resource that passes judgement are mixed up to create a response matched to the wrong operation.</p>
 <p id="rfc.section.2.1.2.p.2">Again, a first operation is aborted by the proxy (&#8220;Homeless stole apples. What shall we do with him?&#8221; &#8211; &#8220;Set him free.&#8221;), and a part of that operation is later used in a different operation to prime the server for responding leniently to another operation that would originally have been &#8220;Hitman killed someone. What shall we do with him?&#8221; &#8211; &#8220;Hang him.&#8221;.</p>
 <div id="rfc.figure.2"/>
@@ -482,7 +477,8 @@ urgent:)
                           (Block1: 1 received, and this is the result)
 </pre>
 <p class="figure">Figure 2: Attack example</p>
-<p id="rfc.section.2.1.2.p.3">[More examples would help, especially for the other blockwise cases. Is it relevant to distinguish non-piggybacked responses?]</p>
+<p id="rfc.section.2.1.2.p.3">The example works equivalently with longer responses, placing it in the <em>SS</em> category instead of the <em>SN</em>.</p>
+<p id="rfc.section.2.1.2.p.4">[More examples would help, especially for the other blockwise cases. Is it relevant to distinguish non-piggybacked responses?]</p>
 <h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#the-request-tag-option" id="the-request-tag-option">The Request-Tag option</a></h1>
 <p id="rfc.section.3.p.1">A new option is defined for all request methods:</p>
 <div id="rfc.figure.3"/>
@@ -515,54 +511,22 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
 <p id="rfc.section.4.p.8">[For somewhere else (?):]</p>
 <p id="rfc.section.4.p.9">A server responding an inner Block2 option SHOULD use an ETag on it, even if the result is not cachable (eg. the response to a POST request), and take reasonable measures against identical ETags on distinct states, otherwise OSCOAP does not provide integrity protection of the response body.</p>
 <h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#rationale" id="rationale">Rationale</a></h1>
-<p id="rfc.section.5.p.1">[Resume moving this from Request-Discriminator to Request-Tag here]</p>
-<p id="rfc.section.5.p.2">This part is informative and serves to illustrate why this option is necessary, and how it is different from similar concepts.</p>
-<p id="rfc.section.5.p.3">Why not use&#8230;</p>
+<p id="rfc.section.5.p.1">This part is informative and serves to illustrate why this option is necessary, and how it is different from similar concepts.</p>
+<p id="rfc.section.5.p.2">Why not&#8230;</p>
 <p/>
 
 <ul>
-  <li>another port: Proxy implementations can work around the simultaneous transfer restrictions by using different ports as a client. This is not possible with some constrained implementations (which typically get their one static socket from the operating system). Moreover, for the OSOCAP inner-bockwise application, the best equivalent would be starting another context, which is application dependent and very costly.  <br/><br/> Moreover, some transports do not have any such variability (@@@ over-serial, or is there something more complete that has the same limitation?)</li>
-  <li>extend the blockwise mechanism with another option: That would not make things easier in the author&#8217;s opinion.</li>
-  <li>put a discriminator into OSCOAP: That would have the same effect for the OSCOAP inner-blockwise case. It would still not allow different OSCOAP requests to happen concurrently on a device (especially in the presence of proxying).</li>
+  <li>forbid out-of-order sequence numbers in blockwise?  <br/><br/> This could be a viable path. To see whether this works, the <a href="#transfercases">Section 2</a> chapter would hopefully help. (It should not rule out legitimate cases of random acces, after all).  <br/><br/> This would exclude other uses of the option like that in <a href="#appendix-proxy">Appendix A</a>.</li>
+  <li>put an option in OSCOAP?  <br/><br/> This would work, and might in the end happen with compression of the Request-Tag option into the AAD.  <br/><br/> As before, this would exclude other uses cases.</li>
+  <li>open up an endpoint per operation?  <br/><br/> This was explored in an earlier draft version as Request-Discriminator, which would have been a lightweight way to &#8220;multiplex&#8221; different endpoints (at least for the purpose of blockwise making references to them) into one secured connection.  <br/><br/> It is still the author&#8217;s assumption that this would laregly be equivalent to the Request-Tag both in the OSCOAP application and in the use case explored in <a href="#appendix-proxy">Appendix A</a>, but the Request-Tag path is being explored currently because it is easier to understand, explain and reason about, while the Request-Discriminator way might result in less normative text with more comments, and possibly have similar effects in implementation codebases.</li>
 </ul>
-<p id="rfc.section.5.p.5">How is this identifier different from the&#8230;</p>
-<p/>
-
-<ul>
-  <li>message ID and token: Both are defined on the same level as the Request Discriminator (that is, from endpoint to endpoint), but the discriminator has an even longer lifetime than the token in that it at least spans all the requests transferred within a blockwise transfer.</li>
-  <li>OSCOAP&#8217;s sequence number: As the above, the sequence number is only used for a single exchange, and does not span a blockwise transfer.  Implementations might, however, opt to use the sequence number of the first package of a blockwise transfer as the Request Discriminator for the whole transfer.</li>
-  <li>ETag: While the Request Discriminator option serves a similar purpose in blockwise transfers as the ETag (ETag allows the client to filter non-matching Block2 responses, Request-Discriminator allows the server to filter non-matching Block1 requests), the ETag is stably determined by the server (and can thus be used for caching), while the Request Discriminator is an ephemeral label used exclusively during the transfer.</li>
-</ul>
-<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#the-naming-of-options" id="the-naming-of-options">The naming of options</a></h1>
-<p id="rfc.section.6.p.1">@@@ this section will obviously be removed over time.</p>
-<p id="rfc.section.6.p.2">The naming of options is a difficult matter &#8211; especially here where the use to the application (describing which requests of a blockwise bunch belong together) deviates from what it by its definition (and in implementation) does, that is, provide a lightweight sub-channel inside the channel described by the endpoint address.</p>
-<p id="rfc.section.6.p.3">Alternatives under current consideration are:</p>
-<p/>
-
-<ul>
-  <li>Request-Tag: More on the Block1 application side, in parallel to the ETag that the client uses to make sure the responses to its Block2 request match up.  <br/><br/> Could lead to confusion when used in any context that relies on endpoints but is not blockwise.</li>
-  <li>Endpoint-Discriminator: On the other end of the spectrum. Technically correct, but its use in a blockwise transfer is not immediately obvious.</li>
-  <li>Request-Discriminator: Some middle ground. I&#8217;d understand it not as much as something that discriminates between requests, but a discriminator introduced by the requester.</li>
-</ul>
-<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#standard-hygiene" id="standard-hygiene">Standard hygiene</a></h1>
-<p id="rfc.section.7.p.1">@@@ if this stays in at all, it&#8217;ll be shortened into some kind of &#8216;additional considerations&#8217; &#8211; depending on how much discussion there is on it.</p>
-<p id="rfc.section.7.p.2">This draft does something that might be considered dirty in terms of RFC interaction: It defines, when implemented, additional semantics into the term &#8220;same endpoint&#8221; &#8211; one could say that it hijacks the term to be an extension point. This is done right now because:</p>
-<p/>
-
-<ul>
-  <li>It keeps RFC interdependencies low.</li>
-  <li>It is compatible in the sense that whoever does not implement this option (and consequently responds 4.02 Bad Option to its use) do trivially implement the changed semantics by just not allowing the Request-Discriminator option to take any other value than none.</li>
-  <li>It allows later or concurrent drafts to use the &#8220;same endpoint&#8221; semantics and optionally utilize this extension without mandating it as a dependency.</li>
-  <li>RFC7252 already defines &#8220;Endpoint&#8221; to include the security association. Given this protects blockwise transfers against a very small range of attacks (those where the attacker can&#8217;t modify the message, but delay it), this can be seen as a security mode and then plug into the extension point described in RFC7252 4.1.</li>
-</ul>
-<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
-<p id="rfc.section.8.p.1">The Request Discriminator is limited in its used between a pair of end points. If used conservatively (ie. only when necessary, and with as-small-as-possible random discriminators), it only indicates that (and roughly how many) operations that require distinct endpoints are in simultaneous use or have previously been unsuccessful.</p>
-<p id="rfc.section.8.p.2">When used to preclude out-of-order situations between endpoints (as for example in OSCOAP), it is essential that implementations store the usable state of a discriminator for as long as required (eg. in parallel with sequence numbers). Failure to do so leads to reuse of a discriminator, and thus opens up the possibility of replays.</p>
-<p id="rfc.section.8.p.3">Servers that rely on consistent states set by clients must be aware that the out-of-order guarantees added by this mechanism only cover operations that are required by RFC7959 to originate from the same endpoint (or security association). Block1 requests should therefore be limited to atomic operations as outlined in that document&#8217;s security considerations.</p>
-<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
-<p id="rfc.section.9.p.1">[Missing: have a number assigned and the option published]</p>
-<h1 id="rfc.references"><a href="#rfc.references">10.</a> References</h1>
-<h1 id="rfc.references.1"><a href="#rfc.references.1">10.1.</a> Normative References</h1>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.6.p.1">When used in combination with OSCOAP or other security layers to prevent block mixing between REST operations, it is crucial to only reuse request tags as specified, and not to use any affected sequence numbers (which means the latest sequence number plus the window size) should information about used request tags get lost.</p>
+<p id="rfc.section.6.p.2">While the Request-Tag is not echoed back by the server unlike the Token, the client should still refrain from setting it to internal values (like memory address of state data) to avoid exposing internal data to a server that it could use in unrelated attacks.</p>
+<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
+<p id="rfc.section.7.p.1">[Missing: have a number assigned and the option published]</p>
+<h1 id="rfc.references"><a href="#rfc.references">8.</a> References</h1>
+<h1 id="rfc.references.1"><a href="#rfc.references.1">8.1.</a> Normative References</h1>
 <table>
   <tbody>
     <tr>
@@ -579,7 +543,7 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
     </tr>
   </tbody>
 </table>
-<h1 id="rfc.references.2"><a href="#rfc.references.2">10.2.</a> Informative References</h1>
+<h1 id="rfc.references.2"><a href="#rfc.references.2">8.2.</a> Informative References</h1>
 <table>
   <tbody>
     <tr>
@@ -603,7 +567,9 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
   </tbody>
 </table>
 <h1 id="rfc.appendix.A"><a href="#rfc.appendix.A">Appendix A.</a> <a href="#appendix-proxy" id="appendix-proxy">Use of Request-Tag by proxies</a></h1>
-<p id="rfc.section.A.p.1">(something along the lines of) It is currently rare that a proxy ever need to serialize blockwise transactions. It could need to at any time, though.  Especially with OSCOAP. This is how it could use Request-Tag to parallelize, if it can afford the state&#8230;</p>
+<p id="rfc.section.A.p.1">In pre-OSCOAP practice, proxies rarely face situations where simultaneous Block1 operations from different affect a single resource and can not be executed in parallel due to the constraints of only one Block1 operation being possible per endpoint pair and resource. (If that happens, the proxy can either serialize the requests, or 5.03 the second requester until the first request has completed).</p>
+<p id="rfc.section.A.p.2">With OSCOAP, all clients access the resource <samp>/</samp> as far as a proxy is concerned, which would lead to more frequent situations in which it would need to serialize requests. Clients that employ OSCOAP&#8217;s outer-blockwise mechanism find themselves in a similar situation.</p>
+<p id="rfc.section.A.p.3">Those proxies and clients can utilize the Request-Tag option work off those requests in parallel by assigning them different Request-Tag values. To a proxy, this will only mean an increase in state of up to eight bytes per operation (if it could handle unencrypted simultaneous requests, it would tell them apart by their URIs; here, it tells them apart by their request tags). The state a server needs to keep per operation increases by the same eight bytes compared to serving the same simultaneous requests directly to different endopoints.</p>
 <h1 id="rfc.authors">
   <a href="#rfc.authors">Author's Address</a>
 </h1>
