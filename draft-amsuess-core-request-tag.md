@@ -402,24 +402,17 @@ Why not...
 Security Considerations
 =======================
 
-The Request Discriminator is limited in its used between a pair of end
-points. If used conservatively (ie. only when necessary, and with
-as-small-as-possible random discriminators), it only indicates that (and
-roughly how many) operations that require distinct endpoints are in
-simultaneous use or have previously been unsuccessful.
+When used in combination with OSCOAP or other security layers to prevent block
+mixing between REST operations, it is crucial to only reuse request tags as
+specified, and not to use any affected sequence numbers (which means the latest
+sequence number plus the window size) should information about used request
+tags get lost.
 
-When used to preclude out-of-order situations between endpoints (as for
-example in OSCOAP), it is essential that implementations store the
-usable state of a discriminator for as long as required (eg. in parallel
-with sequence numbers). Failure to do so leads to reuse of a
-discriminator, and thus opens up the possibility of replays.
 
-Servers that rely on consistent states set by clients must be aware that
-the out-of-order guarantees added by this mechanism only cover
-operations that are required by RFC7959 to originate from the same
-endpoint (or security association). Block1 requests should therefore be
-limited to atomic operations as outlined in that document's security
-considerations.
+While the Request-Tag is not echoed back by the server unlike the Token, the
+client should still refrain from setting it to internal values (like memory
+address of state data) to avoid exposing internal data to a server that it
+could use in unrelated attacks.
 
 IANA Considerations
 ===================
@@ -430,7 +423,23 @@ IANA Considerations
 
 # Use of Request-Tag by proxies {#appendix-proxy}
 
-(something along the lines of) It is currently rare that a proxy ever need to
-serialize blockwise transactions. It could need to at any time, though.
-Especially with OSCOAP. This is how it could use Request-Tag to parallelize, if
-it can afford the state...
+In pre-OSCOAP practice, proxies rarely face situations where simultaneous
+Block1 operations from different affect a single resource and can not be
+executed in parallel due to the constraints of only one Block1 operation being
+possible per endpoint pair and resource. (If that happens, the proxy can either
+serialize the requests, or 5.03 the second requester until the first request
+has completed).
+
+With OSCOAP, all clients access the resource `/` as far as a proxy is
+concerned, which would lead to more frequent situations in which it would need
+to serialize requests. Clients that employ OSCOAP's outer-blockwise mechanism
+find themselves in a similar situation.
+
+Those proxies and clients can utilize the Request-Tag option work off those
+requests in parallel by assigning them different Request-Tag values. To a
+proxy, this will only mean an increase in state of up to eight bytes per
+operation (if it could handle unencrypted simultaneous requests, it would tell
+them apart by their URIs; here, it tells them apart by their request tags). The
+state a server needs to keep per operation increases by the same eight bytes
+compared to serving the same simultaneous requests directly to different
+endopoints.
