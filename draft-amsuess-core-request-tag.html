@@ -279,19 +279,20 @@ address {
   <link href="#rfc.toc" rel="Contents"/>
 <link href="#rfc.section.1" rel="Chapter" title="1 Introduction"/>
 <link href="#rfc.section.2" rel="Chapter" title="2 Blockwise transfer cases"/>
+<link href="#rfc.section.2.1" rel="Chapter" title="2.1 Attack scenarios"/>
+<link href="#rfc.section.2.1.1" rel="Chapter" title="2.1.1 &#x201C;Promote Valjean&#x201D; (on blockwise case SN)"/>
+<link href="#rfc.section.2.1.2" rel="Chapter" title="2.1.2 &#x201C;Free the hitman&#x201D; (blockwise case SN)"/>
 <link href="#rfc.section.3" rel="Chapter" title="3 The Request-Tag option"/>
 <link href="#rfc.section.4" rel="Chapter" title="4 For inclusion in OSCOAP"/>
-<link href="#rfc.section.5" rel="Chapter" title="5 Notes on applications"/>
-<link href="#rfc.section.6" rel="Chapter" title="6 Rationale"/>
-<link href="#rfc.section.7" rel="Chapter" title="7 The naming of options"/>
-<link href="#rfc.section.8" rel="Chapter" title="8 Standard hygiene"/>
-<link href="#rfc.section.9" rel="Chapter" title="9 Security Considerations"/>
-<link href="#rfc.section.10" rel="Chapter" title="10 IANA Considerations"/>
-<link href="#rfc.section.11" rel="Chapter" title="11 References"/>
-<link href="#rfc.section.11.1" rel="Chapter" title="11.1 Informative References"/>
-<link href="#rfc.references" rel="Chapter" title="12 References"/>
-<link href="#rfc.references.1" rel="Chapter" title="12.1 Normative References"/>
-<link href="#rfc.references.2" rel="Chapter" title="12.2 Informative References"/>
+<link href="#rfc.section.5" rel="Chapter" title="5 Rationale"/>
+<link href="#rfc.section.6" rel="Chapter" title="6 The naming of options"/>
+<link href="#rfc.section.7" rel="Chapter" title="7 Standard hygiene"/>
+<link href="#rfc.section.8" rel="Chapter" title="8 Security Considerations"/>
+<link href="#rfc.section.9" rel="Chapter" title="9 IANA Considerations"/>
+<link href="#rfc.references" rel="Chapter" title="10 References"/>
+<link href="#rfc.references.1" rel="Chapter" title="10.1 Normative References"/>
+<link href="#rfc.references.2" rel="Chapter" title="10.2 Informative References"/>
+<link href="#rfc.appendix.A" rel="Chapter" title="A Use of Request-Tag by proxies"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
 
@@ -300,7 +301,7 @@ address {
 
   <meta name="dct.creator" content="Ams&#252;ss, C." />
   <meta name="dct.identifier" content="urn:ietf:id:draft-amsuess-core-request-tag-latest" />
-  <meta name="dct.issued" scheme="ISO8601" content="2017-3-17" />
+  <meta name="dct.issued" scheme="ISO8601" content="2017-3-19" />
   <meta name="dct.abstract" content="This memo describes an optional extension to the Constrained Application Protocol (CoAP, " />
   <meta name="description" content="This memo describes an optional extension to the Constrained Application Protocol (CoAP, " />
 
@@ -321,10 +322,10 @@ address {
 </tr>
 <tr>
   <td class="left">Intended status: Standards Track</td>
-  <td class="right">March 17, 2017</td>
+  <td class="right">March 19, 2017</td>
 </tr>
 <tr>
-  <td class="left">Expires: September 18, 2017</td>
+  <td class="left">Expires: September 20, 2017</td>
   <td class="right"></td>
 </tr>
 
@@ -345,7 +346,7 @@ address {
 <p>This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79.</p>
 <p>Internet-Drafts are working documents of the Internet Engineering Task Force (IETF).  Note that other groups may also distribute working documents as Internet-Drafts.  The list of current Internet-Drafts is at http://datatracker.ietf.org/drafts/current/.</p>
 <p>Internet-Drafts are draft documents valid for a maximum of six months and may be updated, replaced, or obsoleted by other documents at any time.  It is inappropriate to use Internet-Drafts as reference material or to cite them other than as "work in progress."</p>
-<p>This Internet-Draft will expire on September 18, 2017.</p>
+<p>This Internet-Draft will expire on September 20, 2017.</p>
 <h1 id="rfc.copyrightnotice">
   <a href="#rfc.copyrightnotice">Copyright Notice</a>
 </h1>
@@ -359,20 +360,21 @@ address {
 
   	<li>1.   <a href="#rfc.section.1">Introduction</a></li>
 <li>2.   <a href="#rfc.section.2">Blockwise transfer cases</a></li>
-<li>3.   <a href="#rfc.section.3">The Request-Tag option</a></li>
+<ul><li>2.1.   <a href="#rfc.section.2.1">Attack scenarios</a></li>
+<ul><li>2.1.1.   <a href="#rfc.section.2.1.1">&#8220;Promote Valjean&#8221; (on blockwise case SN)</a></li>
+<li>2.1.2.   <a href="#rfc.section.2.1.2">&#8220;Free the hitman&#8221; (blockwise case SN)</a></li>
+</ul></ul><li>3.   <a href="#rfc.section.3">The Request-Tag option</a></li>
 <li>4.   <a href="#rfc.section.4">For inclusion in OSCOAP</a></li>
-<li>5.   <a href="#rfc.section.5">Notes on applications</a></li>
-<li>6.   <a href="#rfc.section.6">Rationale</a></li>
-<li>7.   <a href="#rfc.section.7">The naming of options</a></li>
-<li>8.   <a href="#rfc.section.8">Standard hygiene</a></li>
-<li>9.   <a href="#rfc.section.9">Security Considerations</a></li>
-<li>10.   <a href="#rfc.section.10">IANA Considerations</a></li>
-<li>11.   <a href="#rfc.section.11">References</a></li>
-<ul><li>11.1.   <a href="#rfc.section.11.1">Informative References</a></li>
-</ul><li>12.   <a href="#rfc.references">References</a></li>
-<ul><li>12.1.   <a href="#rfc.references.1">Normative References</a></li>
-<li>12.2.   <a href="#rfc.references.2">Informative References</a></li>
-</ul><li><a href="#rfc.authors">Author's Address</a></li>
+<li>5.   <a href="#rfc.section.5">Rationale</a></li>
+<li>6.   <a href="#rfc.section.6">The naming of options</a></li>
+<li>7.   <a href="#rfc.section.7">Standard hygiene</a></li>
+<li>8.   <a href="#rfc.section.8">Security Considerations</a></li>
+<li>9.   <a href="#rfc.section.9">IANA Considerations</a></li>
+<li>10.   <a href="#rfc.references">References</a></li>
+<ul><li>10.1.   <a href="#rfc.references.1">Normative References</a></li>
+<li>10.2.   <a href="#rfc.references.2">Informative References</a></li>
+</ul><li>Appendix A.   <a href="#rfc.appendix.A">Use of Request-Tag by proxies</a></li>
+<li><a href="#rfc.authors">Author's Address</a></li>
 
 
   </ul>
@@ -389,7 +391,7 @@ address {
 </ul>
 <p id="rfc.section.1.p.3">It does not (and should not) provide sequential delivery. In particular, it does not protect against requests being delayed; the corresponding attack and mitigation is described in <a href="#I-D.mattsson-core-coap-actuators">[I-D.mattsson-core-coap-actuators]</a>.</p>
 <p id="rfc.section.1.p.4">The goal of this memo is to provide protection to the bodies of a blockwise fragmented request/response pair that is equivalent to the protection that would be provided if the complete request and response bodies fit into single messae each. (Packing long payloads into single OSCOAP messages is actually possible using the outer blockwise mechanism, but does not go well with the constraints of devices CoAP is designed for). [Author&#8217;s note: The results of this might move back into OSCOAP &#8211; for now, the matter is explored here.]</p>
-<p id="rfc.section.1.p.5">The proposed method of matching blocks to each other is the introduction of a Request-Tag option, which is similar to the ETag sent along with responses, but ephemeral and set by the client.</p>
+<p id="rfc.section.1.p.5">The proposed method of matching blocks to each other is the introduction of a Request-Tag option, which is similar to the ETag sent along with responses, but ephemeral and set by the client. It is phrased in a way that it can not only be used in OSCOAP, but also by other security mechanisms (eg. CoAP over DTLS), or for other purposes (see <a href="#appendix-proxy">Appendix A</a>).</p>
 <p id="rfc.section.1.p.6">[Author&#8217;s note: At a later stage of this draft, the possibility of moving the Request-Tag value into the AAD as to not spend transmitted bytes on it, eg. by mandating OSCOAP clients to use the partial IV as Request-Tag. This requires ensured agreement between server and client about whether or not a Request-Tag is present, which can hopefully be obtained in the analysis of the various forms a blockwise exchange can take.]</p>
 <p id="rfc.section.1.p.7">The key words &#8220;MUST&#8221;, &#8220;MUST NOT&#8221;, &#8220;REQUIRED&#8221;, &#8220;SHALL&#8221;, &#8220;SHALL NOT&#8221;, &#8220;SHOULD&#8221;, &#8220;SHOULD NOT&#8221;, &#8220;RECOMMENDED&#8221;,  &#8220;MAY&#8221;, and &#8220;OPTIONAL&#8221; in this document are to be interpreted as described in <a href="#RFC2119">[RFC2119]</a>.</p>
 <p id="rfc.section.1.p.8">The terms &#8220;payload&#8221; and &#8220;body&#8221; are used as in <a href="#RFC7959">[RFC7959]</a>. The complete interchange of a request and a response body is called a REST &#8220;operation&#8221;, while a request and response message (as matched by their tokens) is called an &#8220;exchange&#8221;.</p>
@@ -410,66 +412,112 @@ address {
 </ul>
 <p id="rfc.section.2.p.4">[Note that the <em>NS</em> picture frame example is by far the worst and farest-fetched. I&#8217;d like to have an example of a non-safe request resulting in fragmented responses, but that behavior is usually discouraged (PUT responses typically being empty, POST responses bearing a Location), but not outright forbidden, and catered for in blockwise where it comes to combined use of Block1 and Block2.]</p>
 <p id="rfc.section.2.p.5">[Missing: analysis]</p>
-<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#the-request-tag-option" id="the-request-tag-option">The Request-Tag option</a></h1>
-<p id="rfc.section.3.p.1">A new option is defined for all request methods:</p>
+<h1 id="rfc.section.2.1"><a href="#rfc.section.2.1">2.1.</a> <a href="#attack-scenarios" id="attack-scenarios">Attack scenarios</a></h1>
+<p id="rfc.section.2.1.p.1">This section outlines some attacks that should be mitigated by the Request-Tag option. They are written with a malicious proxy between client and server in mind; whether that is a forward, reverse, transparent proxy, or any other entity on the data path that can intercept and inject packages into the communication is irrelevant to the attacks.</p>
+<p id="rfc.section.2.1.p.2">The illustrations draw terminology (especially the &#8220;@&#8221; and &#8220;X&#8221; symbols) from <a href="#I-D.mattsson-core-coap-actuators">[I-D.mattsson-core-coap-actuators]</a>.</p>
+<p id="rfc.section.2.1.p.3">The scenarios typically require the attacker to have a good idea of the content of the packages that are transferred. Note that the attacker can see the codes of the messages.</p>
+<h1 id="rfc.section.2.1.1"><a href="#rfc.section.2.1.1">2.1.1.</a> <a href="#promote-valjean-on-blockwise-case-sn" id="promote-valjean-on-blockwise-case-sn">&#8220;Promote Valjean&#8221; (on blockwise case SN)</a></h1>
+<p id="rfc.section.2.1.1.p.1">In this scenario, blocks from two operations on a POST-accepting resource are combined to make the server execute an action that was not intended by the authorized client. This works only if the client attempts a second operation after first operation failed (due what the attacker made appear like a network outage) within the replay window. The client does not receive a confirmation on the second operation either, but by the time, the server has already executed the unauthorized action.</p>
 <div id="rfc.figure.1"/>
-<div id="optsum"/>
+<div id="promotevaljean"/>
 <pre>
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | No. | C | U | N | R | Name                  | Format | Length | Default |
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    | TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
-    +-----+---+---+---+---+-----------------------+--------+--------+---------+
-    
-    C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
-</pre>
-<p class="figure">Figure 1: Option summary</p>
-<p id="rfc.section.3.p.2">[Resume moving this from Request-Discriminator to Request-Tag here]</p>
-<p id="rfc.section.3.p.3">It is critical (because mechanisms may rely on endpoint identities not to be conflated), unsafe (because the channels implied by endpoint identities terminate at proxies), not repeatable. (@@@ unsafe makes nocachekey irrelevant, but should we or not set it to ease proxy implementations?)</p>
-<p id="rfc.section.3.p.4">A client may set a Request-Discriminator option to indicate that the message&#8217;s Endpoint is to be augmented with the opaque option value. The server MUST NOT treat the message&#8217;s endpoint as equal to any other message&#8217;s endpoint that does not have the identical Request-Discriminator. The absence of the option and a zero-length option are distinct. (@@@ i wouldn&#8217;t insist on that &#8211; especially with the inclusion in the AAD it might be better to have absence and h&#8221;&#8221; equal, so we don&#8217;t have variable types in the AAD)</p>
-<p id="rfc.section.3.p.5">The option is not used in responses. Response messages implicitly bear their corresponding (via the token @@@ or better refer to Exchange definition?) request&#8217;s discriminator.</p>
-<p id="rfc.section.3.p.6">If a request that uses Request-Discriminator is rejected with 4.02 Bad Option, the client SHOULD retry the request without it, but only if and when</p>
-<p/>
+Client   Foe   Server
+   |      |      |
+   +-------------&gt;    POST "incarcerate" (Block1: 0, more to come)
+   |      |      |
+   &lt;-------------+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   +-----&gt;@      |    POST "valjean" (Block1: 1, last block)
+   |      |      |
+   +-----&gt;X      |    All retransmissions dropped
+   |      |      |
 
-<ul>
-  <li>no limitations on simultaneous operations on the same endpoint are in place, and</li>
-  <li>the application does not use distinct Request Discriminators to preclude out-of-order delivery on the same endpoint.</li>
-</ul>
-<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#for-inclusion-in-oscoap" id="for-inclusion-in-oscoap">For inclusion in OSCOAP</a></h1>
-<p id="rfc.section.4.p.1">@@@ if this stays a document of its own, oscoap should make a normative reference to it and state something like</p>
-<p id="rfc.section.4.p.2">Whenever the Block1 option is used as inner option, it is associated with a Request Discriminator. The same Request Discriminator MUST NOT be reused within a security context unless every single block sent has elicted a protected response (and its sequence number is consequently marked used). (@@@ if we&#8217;re cautious, we could <samp>s/unless.*/at all/</samp>, but i don&#8217;t see any harm in allowing it.) OSCOAP requires that out-of-order delivery of blockwise transfers is caught by the Request-Discriminator option, so a client MUST NOT fall back to not using the Request-Discriminator option if it encounters a 4.02 Bad Option response.</p>
-<p id="rfc.section.4.p.3">Note that this does not require the use of the Request-Discriminator in many cases. An application implementing OSCOAP MUST use that option at least when a Block1 request has not been losslessly concluded<a href="Simple package loss will not make a discriminator unusable, because">*</a>, and a server MUST NOT respond with 4.02 due to the presence of a Request-Discriminator option. (@@@ or they could declare the complete context invalid, but i don&#8217;t think we want contexts to be that volatile)</p>
-<p id="rfc.section.4.p.4">there is still CoAP retransmission in place. Only when the block transfer is aborted, or when the same block gets sent with a different sequence number (@@@ may that be at all?), the discriminator is unusable for any further blockwise transfer.</p>
-<p id="rfc.section.4.p.5">A Request-Discriminator option MAY be used when initializing a Block2 transfer as well. A server SHOULD, inside a Request-Discriminator, only send response messages with matching ETags if they can be expected to assemble into a consistent representation again. (@@@ imo that&#8217;s a requirement that there already is from the ETags themselves. jim, do you think this is a starting point for your concerns about validating the whole message?)</p>
-<p id="rfc.section.4.p.6">@@@ this is more of a verbal patch than something actually includable</p>
-<p id="rfc.section.4.p.7">The associated Request Discriminator will need to be included in the AAD. Whether we include that in the request too to keep the AAD the same both for request and response, or have it in responses only, I don&#8217;t care.</p>
-<p id="rfc.section.4.p.8">The Request-Discriminator option is added to the &#8220;E*&#8221; category and like and listed together with Block1/2.</p>
-<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#notes-on-applications" id="notes-on-applications">Notes on applications</a></h1>
-<p id="rfc.section.5.p.1">@@@ spell out example exchanges: proxy forwarding multiple requests, oscoap application. include a case with non-piggybacked reponses.</p>
+(Client: Odd, but let's go on and promote Javert)
+
+   |      |      |
+   +-------------&gt;    POST "promote" (Block1: 0, more to come)
+   |      |      |
+   |      X&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   |      @------&gt;    POST "valjean" (Block1: 1, last block)
+   |      |      |
+   |      X&lt;-----+    2.04 Valjean Promoted
+
+</pre>
+<p class="figure">Figure 1: Attack example</p>
+<p id="rfc.section.2.1.1.p.2">[Sequence note: the below refers to so-far unexplained semantics of Request-Tag, this needs to be resolved.]</p>
+<p id="rfc.section.2.1.1.p.3">With Request-Tag in place, the client would have assigned a different Request-Tag to the &#8220;promote&#8221; line, and the server would have either reacted to the &#8220;valjean&#8221; POST by incarcerating valjean (if it could keep both operation states at the same time), or responded 5.03 to the &#8220;promote&#8221; request until a timeout, or responded 4.08 to the injected &#8220;valjean&#8221; request.</p>
+<p id="rfc.section.2.1.1.p.4">The client would only have been free to use the same Request-Tag on the &#8220;promote&#8221; POST as on the &#8220;incarcerate&#8221; POST if, in the meantime, it had exchanged enough messages that the latest message of the first use (&#8220;valjean&#8221;) is dropped from the server&#8217;s window, and thus the sever would not accept its replay.</p>
+<h1 id="rfc.section.2.1.2"><a href="#rfc.section.2.1.2">2.1.2.</a> <a href="#free-the-hitman-blockwise-case-sn" id="free-the-hitman-blockwise-case-sn">&#8220;Free the hitman&#8221; (blockwise case SN)</a></h1>
+<p id="rfc.section.2.1.2.p.1">In this example, mismatched Block1 packages against a resource that passes judgement are mixed up to create a response matched to the wrong operation.</p>
+<p id="rfc.section.2.1.2.p.2">Again, a first operation is aborted by the proxy (&#8220;Homeless stole apples. What shall we do with him?&#8221; &#8211; &#8220;Set him free.&#8221;), and a part of that operation is later used in a different operation to prime the server for responding leniently to another operation that would originally have been &#8220;Hitman killed someone. What shall we do with him?&#8221; &#8211; &#8220;Hang him.&#8221;.</p>
 <div id="rfc.figure.2"/>
-<div id="promotevaljcean"/>
+<div id="freethehitman"/>
 <pre>
-            Client              Foe         Server
-    
-    POST "incarcerate"(1/2) ---&gt;  ---&gt;
-                           &lt;---  &lt;---   2.31 CONTINUE
-    POST "valjean"(2/2)     ---&gt;@
-                           &lt;---RST
-    
-    (Client: Odd, but let's go on and promote Javert)
-    
-    POST "promote"(1/2)    ---&gt;  ---&gt;
-                          &lt;---  &lt;---    2.31 CONTINUE
-                               @ ---&gt;
-                                &lt;---    2.04 Valjean Promoted!
-    
-    (The @ indicates a maliciously delayed / wormholed package as used in
+Client   Foe   Server
+   |      |      |
+   +-----&gt;@      |    POST "Homeless stole apples. Wh"
+   |      |      |        (Block1: 0, more to come)
+
+(Client: We'll try that one later again; for now, we have something more
+urgent:)
+
+   |      |      |
+   +-------------&gt;    POST "Hitman killed someone. Wh"
+   |      |      |        (Block1: 0, more to come)
+   |      |      |
+   |      @&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   |      @------&gt;    POST "Homeless stole apples. Wh"
+   |      |      |        (Block1: 0, more to come)
+   |      |      |
+   |      X&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   &lt;------@      |    2.31 CONTINUE (Block1: 0 received, send more)
+   |      |      |
+   +-------------&gt;    POST "at shall we do with him?"
+   |      |      |        (Block1: 1, last block)
+   |      |      |
+   &lt;-------------+    2.05 "Set him free."
+                          (Block1: 1 received, and this is the result)
 </pre>
 <p class="figure">Figure 2: Attack example</p>
-<p id="rfc.section.5.p.2">this can&#8217;t happen in oscoap now any more because the incomplete first POST permanently poisons the first request&#8217;s request discriminator, and the second request will have a different one, for which the server will not accept the delayed &#8220;valjean&#8221; any more.</p>
-<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#rationale" id="rationale">Rationale</a></h1>
-<p id="rfc.section.6.p.1">This part is informative and serves to illustrate why this option is necessary, and how it is different from similar concepts.</p>
-<p id="rfc.section.6.p.2">Why not use&#8230;</p>
+<p id="rfc.section.2.1.2.p.3">[More examples would help, especially for the other blockwise cases. Is it relevant to distinguish non-piggybacked responses?]</p>
+<h1 id="rfc.section.3"><a href="#rfc.section.3">3.</a> <a href="#the-request-tag-option" id="the-request-tag-option">The Request-Tag option</a></h1>
+<p id="rfc.section.3.p.1">A new option is defined for all request methods:</p>
+<div id="rfc.figure.3"/>
+<div id="optsum"/>
+<pre>
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| No. | C | U | N | R | Name                  | Format | Length | Default |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+
+C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
+</pre>
+<p class="figure">Figure 3: Option summary</p>
+<p id="rfc.section.3.p.2">It is critical (because a client that wants to secure its request body can&#8217;t have a server ignore it), unsafe (because it needs to understood by any proxy that does blockwise (dis)assembly), and not repeatable. ([Does &#8220;unsafe&#8221; make nocachekey irrelevant? I think so.])</p>
+<p id="rfc.section.3.p.3">A client MAY set the Request-Tag option to indicate that the receiving server MUST NOT act on any block in the same blockwise operation that has a different Request-Tag set.</p>
+<p id="rfc.section.3.p.4">[Note on future development: This is probably where OSCOAP compression could come in and say that when OSCOAP and blockwise is in use, the client MUST set a Request-Tag if and only if it sets a Block1 option in descriptive usage, and is value MUST be the partial IV of that message. That value MUST then be included somewhere in the AAD of every block message <em>after</em> the first, where this compression proposal so far fails because the verifying server would have to know at AAD-building time whether or not this is an inner blockwise request.]</p>
+<p id="rfc.section.3.p.5">If the Request-Tag option is set, the client MAY perform simultaneous operations that utilize Block1 fragmentation from the same endpoint towards the same resource, lifting the limitation of <a href="#RFC7959">[RFC7959]</a> section 2.5. The server is still under no obligation to keep state of more than one transaction. When an operation is in progress and a second one can not be served at the same time, the server MUST either respond to the second request with a 5.03 response code (in which it SHOULD indicate the time it is willing to wait for additional blocks in the first open operation in the Max-Age option), or cancel the first operation by responding 4.08 in subsequent exchanges in the first operations.  Clients that see the latter behavior SHOULD [or MUST?] fall back to serializing requests as it would without the Request-Tag option.</p>
+<p id="rfc.section.3.p.6">[Author&#8217;s note: The above paragraph sounds problematic to me. For further exploration of those error cases, I&#8217;d need to know how simultaneous operations (even on different resources) from different endpoints are handled in constrained clients; I only did stateless operations in constrained devices so far.]</p>
+<p id="rfc.section.3.p.7">The option is not used in responses.</p>
+<p id="rfc.section.3.p.8">If a request that uses Request-Tag is rejected with 4.02 Bad Option, the client MAY retry the operation without it, but it then needs to serialize all operations that affect the same resource. Security requirements can forbid dropping the Request-Tag option.</p>
+<h1 id="rfc.section.4"><a href="#rfc.section.4">4.</a> <a href="#for-inclusion-in-oscoap" id="for-inclusion-in-oscoap">For inclusion in OSCOAP</a></h1>
+<p id="rfc.section.4.p.1">[Editor&#8217;s note: If this stays a document of its own, OSCOAP should make a normative reference to it and state something like:]</p>
+<p id="rfc.section.4.p.2">Whenever the Block1 option is used as inner option, the Request-Tag option must be used. The option value must not be reused until any request messages sent in a different exchange with the same option value have been answered and their answers have been successfully unprotected, or the sender sequence numbers are considered invalid by the server (as proven by a response to a request that bore a request sequence number greater than the old messages&#8217; sequence number plus the window size).</p>
+<p id="rfc.section.4.p.3">If the client follows the suggestion of only storing its own sequence numbers to persistent memory every K requests, it needs to make sure to mark seqno plus windowsize as used, because the next windowsize options can only be used with certain constraints.</p>
+<p id="rfc.section.4.p.4">[Author&#8217;s note: We could ease the requirement for possibly difficult compression here by allowing no Request-Tag option too under the same reuse rules (ie. it&#8217;d be OK the first time and then again after ACKs or some traffic). Clients could then even work around ever needing to send the option by pushing the failed attempts out of the window, although I&#8217;d consider that bad behavior.]</p>
+<p id="rfc.section.4.p.5">[Author&#8217;s note: AFAICT this would be the first actual use of the window size; so far client and server can well interact with different replay window sizes.  Probably it&#8217;s OK to be the first user of the parameter.]</p>
+<p id="rfc.section.4.p.6">[For the options list:]</p>
+<p id="rfc.section.4.p.7">The Request-Discriminator option is added to the &#8220;E=*&#8221; category in the options list, and is listed together with Block1/2 in all other places they are mentioned.</p>
+<p id="rfc.section.4.p.8">[For somewhere else (?):]</p>
+<p id="rfc.section.4.p.9">A server responding an inner Block2 option SHOULD use an ETag on it, even if the result is not cachable (eg. the response to a POST request), and take reasonable measures against identical ETags on distinct states, otherwise OSCOAP does not provide integrity protection of the response body.</p>
+<h1 id="rfc.section.5"><a href="#rfc.section.5">5.</a> <a href="#rationale" id="rationale">Rationale</a></h1>
+<p id="rfc.section.5.p.1">[Resume moving this from Request-Discriminator to Request-Tag here]</p>
+<p id="rfc.section.5.p.2">This part is informative and serves to illustrate why this option is necessary, and how it is different from similar concepts.</p>
+<p id="rfc.section.5.p.3">Why not use&#8230;</p>
 <p/>
 
 <ul>
@@ -477,7 +525,7 @@ address {
   <li>extend the blockwise mechanism with another option: That would not make things easier in the author&#8217;s opinion.</li>
   <li>put a discriminator into OSCOAP: That would have the same effect for the OSCOAP inner-blockwise case. It would still not allow different OSCOAP requests to happen concurrently on a device (especially in the presence of proxying).</li>
 </ul>
-<p id="rfc.section.6.p.4">How is this identifier different from the&#8230;</p>
+<p id="rfc.section.5.p.5">How is this identifier different from the&#8230;</p>
 <p/>
 
 <ul>
@@ -485,10 +533,10 @@ address {
   <li>OSCOAP&#8217;s sequence number: As the above, the sequence number is only used for a single exchange, and does not span a blockwise transfer.  Implementations might, however, opt to use the sequence number of the first package of a blockwise transfer as the Request Discriminator for the whole transfer.</li>
   <li>ETag: While the Request Discriminator option serves a similar purpose in blockwise transfers as the ETag (ETag allows the client to filter non-matching Block2 responses, Request-Discriminator allows the server to filter non-matching Block1 requests), the ETag is stably determined by the server (and can thus be used for caching), while the Request Discriminator is an ephemeral label used exclusively during the transfer.</li>
 </ul>
-<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#the-naming-of-options" id="the-naming-of-options">The naming of options</a></h1>
-<p id="rfc.section.7.p.1">@@@ this section will obviously be removed over time.</p>
-<p id="rfc.section.7.p.2">The naming of options is a difficult matter &#8211; especially here where the use to the application (describing which requests of a blockwise bunch belong together) deviates from what it by its definition (and in implementation) does, that is, provide a lightweight sub-channel inside the channel described by the endpoint address.</p>
-<p id="rfc.section.7.p.3">Alternatives under current consideration are:</p>
+<h1 id="rfc.section.6"><a href="#rfc.section.6">6.</a> <a href="#the-naming-of-options" id="the-naming-of-options">The naming of options</a></h1>
+<p id="rfc.section.6.p.1">@@@ this section will obviously be removed over time.</p>
+<p id="rfc.section.6.p.2">The naming of options is a difficult matter &#8211; especially here where the use to the application (describing which requests of a blockwise bunch belong together) deviates from what it by its definition (and in implementation) does, that is, provide a lightweight sub-channel inside the channel described by the endpoint address.</p>
+<p id="rfc.section.6.p.3">Alternatives under current consideration are:</p>
 <p/>
 
 <ul>
@@ -496,9 +544,9 @@ address {
   <li>Endpoint-Discriminator: On the other end of the spectrum. Technically correct, but its use in a blockwise transfer is not immediately obvious.</li>
   <li>Request-Discriminator: Some middle ground. I&#8217;d understand it not as much as something that discriminates between requests, but a discriminator introduced by the requester.</li>
 </ul>
-<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#standard-hygiene" id="standard-hygiene">Standard hygiene</a></h1>
-<p id="rfc.section.8.p.1">@@@ if this stays in at all, it&#8217;ll be shortened into some kind of &#8216;additional considerations&#8217; &#8211; depending on how much discussion there is on it.</p>
-<p id="rfc.section.8.p.2">This draft does something that might be considered dirty in terms of RFC interaction: It defines, when implemented, additional semantics into the term &#8220;same endpoint&#8221; &#8211; one could say that it hijacks the term to be an extension point. This is done right now because:</p>
+<h1 id="rfc.section.7"><a href="#rfc.section.7">7.</a> <a href="#standard-hygiene" id="standard-hygiene">Standard hygiene</a></h1>
+<p id="rfc.section.7.p.1">@@@ if this stays in at all, it&#8217;ll be shortened into some kind of &#8216;additional considerations&#8217; &#8211; depending on how much discussion there is on it.</p>
+<p id="rfc.section.7.p.2">This draft does something that might be considered dirty in terms of RFC interaction: It defines, when implemented, additional semantics into the term &#8220;same endpoint&#8221; &#8211; one could say that it hijacks the term to be an extension point. This is done right now because:</p>
 <p/>
 
 <ul>
@@ -507,19 +555,14 @@ address {
   <li>It allows later or concurrent drafts to use the &#8220;same endpoint&#8221; semantics and optionally utilize this extension without mandating it as a dependency.</li>
   <li>RFC7252 already defines &#8220;Endpoint&#8221; to include the security association. Given this protects blockwise transfers against a very small range of attacks (those where the attacker can&#8217;t modify the message, but delay it), this can be seen as a security mode and then plug into the extension point described in RFC7252 4.1.</li>
 </ul>
-<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
-<p id="rfc.section.9.p.1">The Request Discriminator is limited in its used between a pair of end points. If used conservatively (ie. only when necessary, and with as-small-as-possible random discriminators), it only indicates that (and roughly how many) operations that require distinct endpoints are in simultaneous use or have previously been unsuccessful.</p>
-<p id="rfc.section.9.p.2">When used to preclude out-of-order situations between endpoints (as for example in OSCOAP), it is essential that implementations store the usable state of a discriminator for as long as required (eg. in parallel with sequence numbers). Failure to do so leads to reuse of a discriminator, and thus opens up the possibility of replays.</p>
-<p id="rfc.section.9.p.3">Servers that rely on consistent states set by clients must be aware that the out-of-order guarantees added by this mechanism only cover operations that are required by RFC7959 to originate from the same endpoint (or security association). Block1 requests should therefore be limited to atomic operations as outlined in that document&#8217;s security considerations.</p>
-<h1 id="rfc.section.10"><a href="#rfc.section.10">10.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
-<p id="rfc.section.10.p.1">@@@ have a number assigned and the option known</p>
-<h1 id="rfc.section.11"><a href="#rfc.section.11">11.</a> <a href="#references" id="references">References</a></h1>
-<p id="rfc.section.11.p.1">CoAP</p>
-<p id="rfc.section.11.p.2">@@@ i think i can get away with only having coap as a normative reference here (plus 2119 if keywords are used), though blockwise might be required too due to it updating coap.</p>
-<h1 id="rfc.section.11.1"><a href="#rfc.section.11.1">11.1.</a> <a href="#informative-references" id="informative-references">Informative References</a></h1>
-<p id="rfc.section.11.1.p.1">OSCOAP blockwise coap-over-serial if referenced</p>
-<h1 id="rfc.references"><a href="#rfc.references">12.</a> References</h1>
-<h1 id="rfc.references.1"><a href="#rfc.references.1">12.1.</a> Normative References</h1>
+<h1 id="rfc.section.8"><a href="#rfc.section.8">8.</a> <a href="#security-considerations" id="security-considerations">Security Considerations</a></h1>
+<p id="rfc.section.8.p.1">The Request Discriminator is limited in its used between a pair of end points. If used conservatively (ie. only when necessary, and with as-small-as-possible random discriminators), it only indicates that (and roughly how many) operations that require distinct endpoints are in simultaneous use or have previously been unsuccessful.</p>
+<p id="rfc.section.8.p.2">When used to preclude out-of-order situations between endpoints (as for example in OSCOAP), it is essential that implementations store the usable state of a discriminator for as long as required (eg. in parallel with sequence numbers). Failure to do so leads to reuse of a discriminator, and thus opens up the possibility of replays.</p>
+<p id="rfc.section.8.p.3">Servers that rely on consistent states set by clients must be aware that the out-of-order guarantees added by this mechanism only cover operations that are required by RFC7959 to originate from the same endpoint (or security association). Block1 requests should therefore be limited to atomic operations as outlined in that document&#8217;s security considerations.</p>
+<h1 id="rfc.section.9"><a href="#rfc.section.9">9.</a> <a href="#iana-considerations" id="iana-considerations">IANA Considerations</a></h1>
+<p id="rfc.section.9.p.1">[Missing: have a number assigned and the option published]</p>
+<h1 id="rfc.references"><a href="#rfc.references">10.</a> References</h1>
+<h1 id="rfc.references.1"><a href="#rfc.references.1">10.1.</a> Normative References</h1>
 <table>
   <tbody>
     <tr>
@@ -536,7 +579,7 @@ address {
     </tr>
   </tbody>
 </table>
-<h1 id="rfc.references.2"><a href="#rfc.references.2">12.2.</a> Informative References</h1>
+<h1 id="rfc.references.2"><a href="#rfc.references.2">10.2.</a> Informative References</h1>
 <table>
   <tbody>
     <tr>
@@ -559,6 +602,8 @@ address {
     </tr>
   </tbody>
 </table>
+<h1 id="rfc.appendix.A"><a href="#rfc.appendix.A">Appendix A.</a> <a href="#appendix-proxy" id="appendix-proxy">Use of Request-Tag by proxies</a></h1>
+<p id="rfc.section.A.p.1">(something along the lines of) It is currently rare that a proxy ever need to serialize blockwise transactions. It could need to at any time, though.  Especially with OSCOAP. This is how it could use Request-Tag to parallelize, if it can afford the state&#8230;</p>
 <h1 id="rfc.authors">
   <a href="#rfc.authors">Author's Address</a>
 </h1>
