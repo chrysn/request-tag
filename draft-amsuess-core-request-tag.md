@@ -458,6 +458,12 @@ Why not...
   Request-Discriminator way might result in less normative text with more
   comments, and possibly have similar effects in implementation codebases.
 
+  A Request-Discriminator option could, among other things, be used by a
+  proxies that act as OSCOAP terminators (eg. network interfaces in composite
+  devices that use unencrypted CoAP on internal serial lines) to disambiguate
+  request from different security contexts towards crypto-unware but
+  blockwise-capable components.
+
 
 Security Considerations
 =======================
