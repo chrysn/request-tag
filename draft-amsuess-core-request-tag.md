@@ -343,7 +343,7 @@ Client   Foe   Server
    |      |      |
    +------------->    POST "incarcerate" (Block1: 0, more to come)
    |      |      |
-   <-------------+    2.31 CONTINUE (Block1: 0 received, send more)
+   <-------------+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    +----->@      |    POST "valjean" (Block1: 1, last block)
    |      |      |
@@ -355,7 +355,7 @@ Client   Foe   Server
    |      |      |
    +------------->    POST "promote" (Block1: 0, more to come)
    |      |      |
-   |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      X<-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    |      @------>    POST "valjean" (Block1: 1, last block)
    |      |      |
@@ -400,14 +400,14 @@ urgent:)
    +------------->    POST "Hitman killed someone. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      @<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      @<-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    |      @------>    POST "Homeless stole apples. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      X<-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
-   <------@      |    2.31 CONTINUE (Block1: 0 received, send more)
+   <------@      |    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    +------------->    POST "at shall we do with him?"
    |      |      |        (Block1: 1, last block)
@@ -512,3 +512,70 @@ them apart by their URIs; here, it tells them apart by their request tags). The
 state a server needs to keep per operation increases by the same eight bytes
 compared to serving the same simultaneous requests directly to different
 endopoints.
+
+Examples
+========
+
+OSCOAP inner-blockwise
+----------------------
+
+All messages exchanged in the following diagrams transferred as OSCOAP
+protected messages. The field data shown indicates code, payload and options of
+the unprotected (ie. inner) messages. Payloads are symbolic and do not
+necessarily line up in any block size when taken literally. Sequence numbers
+used are indicated at the sender side, and the window size used is 32.
+
+{{example-back2back}} shows how under usual circumstances, the Request-Tag
+option does not need to be set:
+
+~~~~~~~~~~
+Client         Server
+   |             |
+   [1]----------->    POST "incarcerate" (Block1: 0, more to come)
+   |             |
+   <----------[11]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [2]----------->    POST "valjean" (Block1: 1, last block)
+   |             |
+   <----------[12]    2.04 Valjean incarcerated (Block1: 1 received)
+   |             |
+   [3]----------->    POST "promote" (Block1: 0, more to come)
+   |             |
+   <----------[13]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [4]----------->    POST "javert" (Block1: 1, last block)
+   |             |
+   <----------[14]    2.04 Javert promoted (Block1: 1 received)
+
+~~~~~~~~~~
+{: #example-back2back title="Back to back block transfer" }
+
+If there is any doubt about whether all sent sequence numbers of a Request-Tag
+value are either acknowledged or off the window, the client uses a different
+value as in {{example-afterloss}}. The client here uses the shortest possible
+value, the empty string:
+
+~~~~~~~~~~
+Client         Server
+   |             |
+   [1]----------->    POST "incarcerate" (Block1: 0, more to come)
+   |             |
+   <----------[11]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [2]---X       |    POST "valjean" (Block1: 1, last block)
+   |             |
+
+(extended network outage; when it's over, the client attempts a different
+operation:)
+
+   [3]----------->    POST "promote" (Block1: 0, more to come;
+   |             |        Request-Tag: "")
+   |             |
+   <----------[12]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [4]----------->    POST "javert" (Block1: 1, last block;
+   |             |        Request-Tag: "")
+   |             |
+   <----------[14]    2.04 Javert promoted (Block1: 1 received)
+~~~~~~~~~~
+{: #example-afterloss title="Behavior after extended package loss" }
