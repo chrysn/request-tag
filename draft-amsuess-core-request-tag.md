@@ -154,10 +154,9 @@ normative reference to it and state something like:
 > option is counted as a value too, and distinct from the empty option) can
 > only be reused when all request messages sent in a different exchange with
 > the same option value have either been answered (and successfully
-> unprotected), or their sender sequence numbers are considered invalid by the
-> server (as proven by a response to a request that bore a request sequence
-> number greater than the old messages' sequence number plus the server's
-> recipient window size).
+> unprotected), or their sender sequence numbers differ from the next request
+> by at least the window size (in which case they can not be accepted by the
+> server after the new request has started).
 >
 > If the client follows the suggestion of only storing its own sequence numbers
 > to persistent memory every K requests, it must increment the stored sequence
@@ -166,8 +165,9 @@ normative reference to it and state something like:
 > constraints (it might be necessary to set a Request-Tag on them).
 
 With this text, clients could even work around ever needing to send the option
-by pushing any failed exchange attempts out of the window, although I'd
-consider that bad behavior.
+by bumping their sequence number -- looks like bad behavior in the first
+place, but then again, it is just a variant of the "forbid out-of-order
+sequence numbers in blockwise" alternative option.
 
 AFAICT this would be the first actual use of the window size; so far client and
 server can well interact with different replay window sizes.  Probably it's OK
