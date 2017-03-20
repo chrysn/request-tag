@@ -18,11 +18,11 @@ author:
     email: c.amsuess@energyharvesting.at
 
 normative:
-  RFC7252:
   RFC2119:
+  RFC7252:
+  RFC7959:
 
 informative:
-  RFC7959:
   I-D.draft-ietf-core-object-security-01:
   I-D.draft-mattsson-core-coap-actuators-02:
 
