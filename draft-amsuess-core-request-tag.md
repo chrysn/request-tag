@@ -149,25 +149,25 @@ For inclusion in OSCOAP
 \[Author's note: If this stays a document of its own, OSCOAP should make a
 normative reference to it and state something like:
 
-> Whenever the Block1 option is used as inner option, the Request-Tag option must
-> be used. The option value must not be reused until any request messages sent in
-> a different exchange with the same option value have been answered and their
-> answers have been successfully unprotected, or the sender sequence numbers are
-> considered invalid by the server (as proven by a response to a request that
-> bore a request sequence number greater than the old messages' sequence number
-> plus the window size).
+> Whenever the Block1 option is used as inner option, the Request-Tag option
+> must be considered. A Request-Tag value (where the absence of a Request-Tag
+> option is counted as a value too, and distinct from the empty option) can
+> only be reused when all request messages sent in a different exchange with
+> the same option value have either been answered (and successfully
+> unprotected), or their sender sequence numbers are considered invalid by the
+> server (as proven by a response to a request that bore a request sequence
+> number greater than the old messages' sequence number plus the server's
+> recipient window size).
 >
 > If the client follows the suggestion of only storing its own sequence numbers
-> to persistent memory every K requests, it needs to make sure to mark seqno plus
-> windowsize as used, because the next windowsize options can only be used with
-> certain constraints.
+> to persistent memory every K requests, it must increment the stored sequence
+> number counter before using the last window-size sequence numbers available,
+> because the remaining sequence numbes might only be used with certain
+> constraints (it might be necessary to set a Request-Tag on them).
 
-We could ease the requirement for possibly difficult
-compression here by allowing no Request-Tag option too under the same reuse
-rules (ie. it'd be OK the first time and then again after ACKs or some
-traffic). Clients could then even work around ever needing to send the option
-by pushing the failed attempts out of the window, although I'd consider that
-bad behavior.
+With this text, clients could even work around ever needing to send the option
+by pushing any failed exchange attempts out of the window, although I'd
+consider that bad behavior.
 
 AFAICT this would be the first actual use of the window size; so far client and
 server can well interact with different replay window sizes.  Probably it's OK
