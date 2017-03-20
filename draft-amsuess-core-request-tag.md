@@ -164,13 +164,17 @@ ones; the worst are marked with (?).\]
 * *SS*: A large request is sent sequentially, and the large response is fetched
   in sequential blocks after the request has been transmitted in full.
 
-  Integrity protection: The client sets a Request-Tag as in the *SN* case. In
-  Block2 phase, ... \[Author, continue here -- I would have expected that the
-  Block2 clocking-out of data happens while continuously retransmitting the
-  last Block1 part, while actually it happens without a Block1 option at all.
-  Still, I'd like to have Request-Tag set, but do we need that actually for
-  protection, or would it just be convenient because otherwise Block2 requests
-  can get mixed up at proxying?\]
+  Integrity protection: The client sets a Request-Tag as in the *SN* case. The
+  last exchange (itself protected by OSCOAP's request/response matching)
+  carries the Request-Tag option, and as with *NS*, the server sets an ETag.
+
+  This is a case for which the Request-Tag use might need extending to the
+  Block2 phase; while the protection is sufficient by passing the link on from
+  Request-Tag to ETag, the server's state might be overridden by a simultaneous
+  request (which the Request-Tag option promises to deal with), and the client
+  may fail to retrieve the data because another request clears the state. This
+  is problematic more for the proxy use case than for protected blockwise
+  transfers.
 
 \[Note that the *NS* picture frame example is by far the worst and
 farest-fetched. I'd like to have an example of a non-safe request resulting in
