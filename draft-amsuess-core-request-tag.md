@@ -146,47 +146,48 @@ dropping the Request-Tag option.
 For inclusion in OSCOAP
 =======================
 
-\[Editor's note: If this stays a document of its own, OSCOAP should make a
-normative reference to it and state something like:\]
+\[Author's note: If this stays a document of its own, OSCOAP should make a
+normative reference to it and state something like:
 
-Whenever the Block1 option is used as inner option, the Request-Tag option must
-be used. The option value must not be reused until any request messages sent in
-a different exchange with the same option value have been answered and their
-answers have been successfully unprotected, or the sender sequence numbers are
-considered invalid by the server (as proven by a response to a request that
-bore a request sequence number greater than the old messages' sequence number
-plus the window size).
+> Whenever the Block1 option is used as inner option, the Request-Tag option must
+> be used. The option value must not be reused until any request messages sent in
+> a different exchange with the same option value have been answered and their
+> answers have been successfully unprotected, or the sender sequence numbers are
+> considered invalid by the server (as proven by a response to a request that
+> bore a request sequence number greater than the old messages' sequence number
+> plus the window size).
+>
+> If the client follows the suggestion of only storing its own sequence numbers
+> to persistent memory every K requests, it needs to make sure to mark seqno plus
+> windowsize as used, because the next windowsize options can only be used with
+> certain constraints.
 
-If the client follows the suggestion of only storing its own sequence numbers
-to persistent memory every K requests, it needs to make sure to mark seqno plus
-windowsize as used, because the next windowsize options can only be used with
-certain constraints.
-
-\[Author's note: We could ease the requirement for possibly difficult
+We could ease the requirement for possibly difficult
 compression here by allowing no Request-Tag option too under the same reuse
 rules (ie. it'd be OK the first time and then again after ACKs or some
 traffic). Clients could then even work around ever needing to send the option
 by pushing the failed attempts out of the window, although I'd consider that
-bad behavior.\]
+bad behavior.
 
-\[Author's note: AFAICT this would be the first actual use of the window size;
-so far client and server can well interact with different replay window sizes.
-Probably it's OK to be the first user of the parameter.\]
+AFAICT this would be the first actual use of the window size; so far client and
+server can well interact with different replay window sizes.  Probably it's OK
+to be the first user of the parameter.
 
 
-\[For the options list:\]
+For the options list:
 
 The Request-Discriminator option is added to the "E=\*" category in the options
 list, and is listed together with Block1/2 in all other places they are
 mentioned.
 
-\[For somewhere else (?):\]
+For somewhere else (?):
 
 A server responding an inner Block2 option SHOULD use an ETag on it, even if
 the result is not cachable (eg. the response to a POST request), and take
 reasonable measures against identical ETags on distinct states, otherwise
 OSCOAP does not provide integrity protection of the response body.
 
+\]
 
 Security properties of blockwise transfer
 =========================================
