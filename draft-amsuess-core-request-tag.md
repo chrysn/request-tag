@@ -33,7 +33,7 @@ Protocol (CoAP, {{RFC7252}} and {{RFC7959}}) that allows matching of request
 blocks. This primarily serves to transfer the security properties that Object
 Security of CoAP (OSCOAP, {{I-D.ietf-core-object-security}}) provides
 for single requests to blockwise transfers. The security of blockwise transfer
-in OSCOAP is reflected on here.
+in OSCOAP is reflected on in a dedicated section.
 
 --- middle
 
@@ -83,8 +83,32 @@ interchange of a request and a response body is called a REST "operation",
 while a request and response message (as matched by their tokens) is called an
 "exchange".
 
-Blockwise transfer cases {#transfercases}
+Security properties of blockwise transfer
 =========================================
+
+Blockwise transfer, specified in {{RFC7959}}, fragments REST operations into
+exchanges of individual blocks. It provides, at the discretion of the server,
+direct access to parts of a resource representation (where the client can fetch
+or send any block in any sequence, also called "random access") or sequential
+access (where the operation is started by exchanging the first block, and
+terminates in the exchange of the last block).
+
+The individual blocks are correlated only by the client *endpoint* (or security
+context if applicable), the requested *URI*, and *time* (and thereby server
+state, where the operation is available at most until another request with the
+same endpoint/URI combination arrives).
+
+The specification does include security considerations, which do advise against
+allowing random write access, but does not contain a mechanism that allows
+protecting the integrity of the operation's body. Consequently, the attacks
+described below are possible even when blockwise transfer is used over DTLS to
+the author's knowledge.
+
+Blockwise transfer cases {#transfercases}
+-----------------------------------------
+
+\[Sequence note: the below refers to so-far unexplained semantics of
+Request-Tag, this needs to be resolved.\]
 
 There are several shapes a blockwise exchange can take, named here for further
 reference. Requests or responses bodies are called "small" or "large" here if
@@ -234,9 +258,6 @@ Client   Foe   Server
 
 ~~~~~~~~~~
 {: #promotevaljean title="Attack example" }
-
-\[Sequence note: the below refers to so-far unexplained semantics of
-Request-Tag, this needs to be resolved.\]
 
 With Request-Tag in place, the client would have assigned a different
 Request-Tag to the "promote" line, and the server would have either reacted to
