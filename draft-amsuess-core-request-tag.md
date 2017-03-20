@@ -216,7 +216,9 @@ Blockwise transfer cases {#transfercases}
 There are several shapes a blockwise exchange can take, named here for further
 reference. Requests or responses bodies are called "small" or "large" here if
 they do or do not, respectively, fit in a single message. Empty bodies are
-small.
+small. Naming consists of case discrimination letters for No blockwise,
+Sequential transfer and Random access in the Block1 and Block2 phases,
+respectively.
 
 \[Author's note: I'd appreciate real examples to replace the more contrived
 ones; the worst are marked with (?).\]
@@ -275,7 +277,7 @@ ones; the worst are marked with (?).\]
 
   Examples: Storing data in a memory region of a device. (?)
 
-  Integrity porteciton: The client can set a Request-Tag if it wants to group
+  Integrity protection: The client can set a Request-Tag if it wants to group
   operations, but there is presumably \[check!\] no correlation to protect
   anyway.
 
