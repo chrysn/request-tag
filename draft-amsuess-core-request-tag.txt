@@ -78,7 +78,9 @@ Table of Contents
      7.1.  Normative References  . . . . . . . . . . . . . . . . . .  12
      7.2.  Informative References  . . . . . . . . . . . . . . . . .  12
    Appendix A.  Use of Request-Tag by proxies  . . . . . . . . . . .  13
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  13
+   Appendix B.  Examples . . . . . . . . . . . . . . . . . . . . . .  13
+     B.1.  OSCOAP inner-blockwise  . . . . . . . . . . . . . . . . .  13
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
 
 1.  Introduction
 
@@ -104,8 +106,6 @@ Table of Contents
    blockwise fragmented request/response pair that is equivalent to the
    protection that would be provided if the complete request and
    response bodies fit into single messae each.  (Packing long payloads
-   into single OSCOAP messages is actually possible using the outer
-   blockwise mechanism, but does not go well with the constraints of
 
 
 
@@ -114,6 +114,8 @@ Amsuess                Expires September 21, 2017               [Page 2]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+   into single OSCOAP messages is actually possible using the outer
+   blockwise mechanism, but does not go well with the constraints of
    devices CoAP is designed for).  [Author's note: The results of this
    might move back into OSCOAP - for now, the matter is explored here.]
 
@@ -159,8 +161,6 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
    repeatable.  ([Does "unsafe" make nocachekey irrelevant?  I think
    so.])
 
-   A client MAY set the Request-Tag option to indicate that the
-   receiving server MUST NOT act on any block in the same blockwise
 
 
 
@@ -170,6 +170,8 @@ Amsuess                Expires September 21, 2017               [Page 3]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+   A client MAY set the Request-Tag option to indicate that the
+   receiving server MUST NOT act on any block in the same blockwise
    operation that has a different Request-Tag set.  A server MUST NOT
    use blocks with and blocks without Request-Tag option either.
 
@@ -215,9 +217,7 @@ Internet-Draft             Request-Tag option                 March 2017
    [Author's note: If this stays a document of its own, OSCOAP should
    make a normative reference to it and state something like:
 
-      Whenever the Block1 option is used as inner option, the Request-
-      Tag option must be considered.  A Request-Tag value (where the
-      absence of a Request-Tag option is counted as a value too, and
+
 
 
 
@@ -226,13 +226,15 @@ Amsuess                Expires September 21, 2017               [Page 4]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+      Whenever the Block1 option is used as inner option, the Request-
+      Tag option must be considered.  A Request-Tag value (where the
+      absence of a Request-Tag option is counted as a value too, and
       distinct from the empty option) can only be reused when all
       request messages sent in a different exchange with the same option
       value have either been answered (and successfully unprotected), or
-      their sender sequence numbers are considered invalid by the server
-      (as proven by a response to a request that bore a request sequence
-      number greater than the old messages' sequence number plus the
-      server's recipient window size).
+      their sender sequence numbers differ from the next request by at
+      least the window size (in which case they can not be accepted by
+      the server after the new request has started).
 
       If the client follows the suggestion of only storing its own
       sequence numbers to persistent memory every K requests, it must
@@ -242,8 +244,10 @@ Internet-Draft             Request-Tag option                 March 2017
       might be necessary to set a Request-Tag on them).
 
    With this text, clients could even work around ever needing to send
-   the option by pushing any failed exchange attempts out of the window,
-   although I'd consider that bad behavior.
+   the option by bumping their sequence number - looks like bad behavior
+   in the first place, but then again, it is just a variant of the
+   "forbid out-of-order sequence numbers in blockwise" alternative
+   option.
 
    AFAICT this would be the first actual use of the window size; so far
    client and server can well interact with different replay window
@@ -270,10 +274,6 @@ Internet-Draft             Request-Tag option                 March 2017
    Blockwise transfer, specified in [RFC7959], fragments REST operations
    into exchanges of individual blocks.  It provides, at the discretion
    of the server, direct access to parts of a resource representation
-   (where the client can fetch or send any block in any sequence, also
-   called "random access") or sequential access (where the operation is
-   started by exchanging the first block, and terminates in the exchange
-   of the last block).
 
 
 
@@ -281,6 +281,11 @@ Amsuess                Expires September 21, 2017               [Page 5]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+   (where the client can fetch or send any block in any sequence, also
+   called "random access") or sequential access (where the operation is
+   started by exchanging the first block, and terminates in the exchange
+   of the last block).
 
    The individual blocks are correlated only by the client _endpoint_
    (or security context if applicable), the requested _URI_, and _time_
@@ -326,11 +331,6 @@ Internet-Draft             Request-Tag option                 March 2017
       Changes in the response need to be covered by the server setting a
       unique ETag.
 
-      Client and server could still disagree over whether the requests
-      constitute a single or distinct REST operations; that's a general
-      issue that should be pointed out.  Note, however, that the _SS_
-      case _does_ provide that distinction! ["making non-blockwise as
-
 
 
 Amsuess                Expires September 21, 2017               [Page 6]
@@ -338,6 +338,10 @@ Amsuess                Expires September 21, 2017               [Page 6]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+      Client and server could still disagree over whether the requests
+      constitute a single or distinct REST operations; that's a general
+      issue that should be pointed out.  Note, however, that the _SS_
+      case _does_ provide that distinction! ["making non-blockwise as
       safe as blockwise" is not part of the mission statement (only the
       other way round), so probably we should accept this here and not
       try to provide that assurance - it would make every request a
@@ -383,10 +387,6 @@ Internet-Draft             Request-Tag option                 March 2017
       - these cases are explicitly forbidden in blockwise transfer
       ([RFC7959] section 2.7).
 
-   o  _RS_: [That's a tough one.  A) I can't come up with examples, and
-      B) the same section 2.7 says that Block2 processing starts when
-      the _last_ block is done, implying that the request is sequential
-
 
 
 Amsuess                Expires September 21, 2017               [Page 7]
@@ -394,6 +394,9 @@ Amsuess                Expires September 21, 2017               [Page 7]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+   o  _RS_: [That's a tough one.  A) I can't come up with examples, and
+      B) the same section 2.7 says that Block2 processing starts when
+      the _last_ block is done, implying that the request is sequential
       but not outright prescribing it.  Furthermore, can there be
       inbetween successful replies? ]
 
@@ -442,9 +445,6 @@ Internet-Draft             Request-Tag option                 March 2017
 
 
 
-
-
-
 Amsuess                Expires September 21, 2017               [Page 8]
 
 Internet-Draft             Request-Tag option                 March 2017
@@ -465,7 +465,7 @@ Internet-Draft             Request-Tag option                 March 2017
       |      |      |
       +------------->    POST "incarcerate" (Block1: 0, more to come)
       |      |      |
-      <-------------+    2.31 CONTINUE (Block1: 0 received, send more)
+      <-------------+    2.31 Continue (Block1: 0 received, send more)
       |      |      |
       +----->@      |    POST "valjean" (Block1: 1, last block)
       |      |      |
@@ -477,7 +477,7 @@ Internet-Draft             Request-Tag option                 March 2017
       |      |      |
       +------------->    POST "promote" (Block1: 0, more to come)
       |      |      |
-      |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+      |      X<-----+    2.31 Continue (Block1: 0 received, send more)
       |      |      |
       |      @------>    POST "valjean" (Block1: 1, last block)
       |      |      |
@@ -531,14 +531,14 @@ urgent:)
    +------------->    POST "Hitman killed someone. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      @<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      @<-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    |      @------>    POST "Homeless stole apples. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      X<-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      X<-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
-   <------@      |    2.31 CONTINUE (Block1: 0 received, send more)
+   <------@      |    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    +------------->    POST "at shall we do with him?"
    |      |      |        (Block1: 1, last block)
@@ -699,6 +699,117 @@ Appendix A.  Use of Request-Tag by proxies
    serving the same simultaneous requests directly to different
    endopoints.
 
+Appendix B.  Examples
+
+B.1.  OSCOAP inner-blockwise
+
+   All messages exchanged in the following diagrams transferred as
+   OSCOAP protected messages.  The field data shown indicates code,
+   payload and options of the unprotected (ie. inner) messages.
+   Payloads are symbolic and do not necessarily line up in any block
+   size when taken literally.  Sequence numbers used are indicated at
+   the sender side, and the window size used is 32.
+
+   Figure 4 shows how under usual circumstances, the Request-Tag option
+   does not need to be set:
+
+
+
+
+
+
+
+
+
+
+
+
+
+Amsuess                Expires September 21, 2017              [Page 13]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+   Client         Server
+      |             |
+      [1]----------->    POST "incarcerate" (Block1: 0, more to come)
+      |             |
+      <----------[11]    2.31 Continue (Block1: 0 received, send more)
+      |             |
+      [2]----------->    POST "valjean" (Block1: 1, last block)
+      |             |
+      <----------[12]    2.04 Valjean incarcerated (Block1: 1 received)
+      |             |
+      [3]----------->    POST "promote" (Block1: 0, more to come)
+      |             |
+      <----------[13]    2.31 Continue (Block1: 0 received, send more)
+      |             |
+      [4]----------->    POST "javert" (Block1: 1, last block)
+      |             |
+      <----------[14]    2.04 Javert promoted (Block1: 1 received)
+
+
+                   Figure 4: Back to back block transfer
+
+   If there is any doubt about whether all sent sequence numbers of a
+   Request-Tag value are either acknowledged or off the window, the
+   client uses a different value as in Figure 5.  The client here uses
+   the shortest possible value, the empty string:
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Amsuess                Expires September 21, 2017              [Page 14]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+Client         Server
+   |             |
+   [1]----------->    POST "incarcerate" (Block1: 0, more to come)
+   |             |
+   <----------[11]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [2]---X       |    POST "valjean" (Block1: 1, last block)
+   |             |
+
+(extended network outage; when it's over, the client attempts a different
+operation:)
+
+   [3]----------->    POST "promote" (Block1: 0, more to come;
+   |             |        Request-Tag: "")
+   |             |
+   <----------[12]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [4]----------->    POST "javert" (Block1: 1, last block;
+   |             |        Request-Tag: "")
+   |             |
+   <----------[14]    2.04 Javert promoted (Block1: 1 received)
+
+              Figure 5: Behavior after extended package loss
+
 Author's Address
 
    Christian Amsuess
@@ -725,4 +836,5 @@ Author's Address
 
 
 
-Amsuess                Expires September 21, 2017              [Page 13]
+
+Amsuess                Expires September 21, 2017              [Page 15]

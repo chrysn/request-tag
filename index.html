@@ -292,6 +292,8 @@ address {
 <link href="#rfc.references.1" rel="Chapter" title="7.1 Normative References"/>
 <link href="#rfc.references.2" rel="Chapter" title="7.2 Informative References"/>
 <link href="#rfc.appendix.A" rel="Chapter" title="A Use of Request-Tag by proxies"/>
+<link href="#rfc.appendix.B" rel="Chapter" title="B Examples"/>
+<link href="#rfc.appendix.B.1" rel="Chapter" title="B.1 OSCOAP inner-blockwise"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
 
@@ -372,7 +374,9 @@ address {
 <ul><li>7.1.   <a href="#rfc.references.1">Normative References</a></li>
 <li>7.2.   <a href="#rfc.references.2">Informative References</a></li>
 </ul><li>Appendix A.   <a href="#rfc.appendix.A">Use of Request-Tag by proxies</a></li>
-<li><a href="#rfc.authors">Author's Address</a></li>
+<li>Appendix B.   <a href="#rfc.appendix.B">Examples</a></li>
+<ul><li>B.1.   <a href="#rfc.appendix.B.1">OSCOAP inner-blockwise</a></li>
+</ul><li><a href="#rfc.authors">Author's Address</a></li>
 
 
   </ul>
@@ -419,10 +423,10 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
 <p/>
 
 <ul class="empty">
-  <li>Whenever the Block1 option is used as inner option, the Request-Tag option must be considered. A Request-Tag value (where the absence of a Request-Tag option is counted as a value too, and distinct from the empty option) can only be reused when all request messages sent in a different exchange with the same option value have either been answered (and successfully unprotected), or their sender sequence numbers are considered invalid by the server (as proven by a response to a request that bore a request sequence number greater than the old messages&#8217; sequence number plus the server&#8217;s recipient window size).</li>
+  <li>Whenever the Block1 option is used as inner option, the Request-Tag option must be considered. A Request-Tag value (where the absence of a Request-Tag option is counted as a value too, and distinct from the empty option) can only be reused when all request messages sent in a different exchange with the same option value have either been answered (and successfully unprotected), or their sender sequence numbers differ from the next request by at least the window size (in which case they can not be accepted by the server after the new request has started).</li>
   <li>If the client follows the suggestion of only storing its own sequence numbers to persistent memory every K requests, it must increment the stored sequence number counter before using the last window-size sequence numbers available, because the remaining sequence numbes might only be used with certain constraints (it might be necessary to set a Request-Tag on them).</li>
 </ul>
-<p id="rfc.section.2.1.p.3">With this text, clients could even work around ever needing to send the option by pushing any failed exchange attempts out of the window, although I&#8217;d consider that bad behavior.</p>
+<p id="rfc.section.2.1.p.3">With this text, clients could even work around ever needing to send the option by bumping their sequence number &#8211; looks like bad behavior in the first place, but then again, it is just a variant of the &#8220;forbid out-of-order sequence numbers in blockwise&#8221; alternative option.</p>
 <p id="rfc.section.2.1.p.4">AFAICT this would be the first actual use of the window size; so far client and server can well interact with different replay window sizes.  Probably it&#8217;s OK to be the first user of the parameter.</p>
 <p id="rfc.section.2.1.p.5">For the options list:</p>
 <p id="rfc.section.2.1.p.6">The Request-Discriminator option is added to the &#8220;E=*&#8221; category in the options list, and is listed together with Block1/2 in all other places they are mentioned.</p>
@@ -462,7 +466,7 @@ Client   Foe   Server
    |      |      |
    +-------------&gt;    POST "incarcerate" (Block1: 0, more to come)
    |      |      |
-   &lt;-------------+    2.31 CONTINUE (Block1: 0 received, send more)
+   &lt;-------------+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    +-----&gt;@      |    POST "valjean" (Block1: 1, last block)
    |      |      |
@@ -474,7 +478,7 @@ Client   Foe   Server
    |      |      |
    +-------------&gt;    POST "promote" (Block1: 0, more to come)
    |      |      |
-   |      X&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      X&lt;-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    |      @------&gt;    POST "valjean" (Block1: 1, last block)
    |      |      |
@@ -502,14 +506,14 @@ urgent:)
    +-------------&gt;    POST "Hitman killed someone. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      @&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      @&lt;-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    |      @------&gt;    POST "Homeless stole apples. Wh"
    |      |      |        (Block1: 0, more to come)
    |      |      |
-   |      X&lt;-----+    2.31 CONTINUE (Block1: 0 received, send more)
+   |      X&lt;-----+    2.31 Continue (Block1: 0 received, send more)
    |      |      |
-   &lt;------@      |    2.31 CONTINUE (Block1: 0 received, send more)
+   &lt;------@      |    2.31 Continue (Block1: 0 received, send more)
    |      |      |
    +-------------&gt;    POST "at shall we do with him?"
    |      |      |        (Block1: 1, last block)
@@ -580,6 +584,60 @@ urgent:)
 <p id="rfc.section.A.p.1">In pre-OSCOAP practice, proxies rarely face situations where simultaneous Block1 operations from different affect a single resource and can not be executed in parallel due to the constraints of only one Block1 operation being possible per endpoint pair and resource. (If that happens, the proxy can either serialize the requests, or 5.03 the second requester until the first request has completed).</p>
 <p id="rfc.section.A.p.2">With OSCOAP, all clients access the resource <samp>/</samp> as far as a proxy is concerned, which would lead to more frequent situations in which it would need to serialize requests. Clients that employ OSCOAP&#8217;s outer-blockwise mechanism find themselves in a similar situation.</p>
 <p id="rfc.section.A.p.3">Those proxies and clients can utilize the Request-Tag option work off those requests in parallel by assigning them different Request-Tag values. To a proxy, this will only mean an increase in state of up to eight bytes per operation (if it could handle unencrypted simultaneous requests, it would tell them apart by their URIs; here, it tells them apart by their request tags). The state a server needs to keep per operation increases by the same eight bytes compared to serving the same simultaneous requests directly to different endopoints.</p>
+<h1 id="rfc.appendix.B"><a href="#rfc.appendix.B">Appendix B.</a> <a href="#examples" id="examples">Examples</a></h1>
+<h1 id="rfc.appendix.B.1"><a href="#rfc.appendix.B.1">B.1.</a> <a href="#oscoap-inner-blockwise" id="oscoap-inner-blockwise">OSCOAP inner-blockwise</a></h1>
+<p id="rfc.section.B.1.p.1">All messages exchanged in the following diagrams transferred as OSCOAP protected messages. The field data shown indicates code, payload and options of the unprotected (ie. inner) messages. Payloads are symbolic and do not necessarily line up in any block size when taken literally. Sequence numbers used are indicated at the sender side, and the window size used is 32.</p>
+<p><a href="#example-back2back">Figure 4</a> shows how under usual circumstances, the Request-Tag option does not need to be set:</p>
+<div id="rfc.figure.4"/>
+<div id="example-back2back"/>
+<pre>
+Client         Server
+   |             |
+   [1]-----------&gt;    POST "incarcerate" (Block1: 0, more to come)
+   |             |
+   &lt;----------[11]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [2]-----------&gt;    POST "valjean" (Block1: 1, last block)
+   |             |
+   &lt;----------[12]    2.04 Valjean incarcerated (Block1: 1 received)
+   |             |
+   [3]-----------&gt;    POST "promote" (Block1: 0, more to come)
+   |             |
+   &lt;----------[13]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [4]-----------&gt;    POST "javert" (Block1: 1, last block)
+   |             |
+   &lt;----------[14]    2.04 Javert promoted (Block1: 1 received)
+
+</pre>
+<p class="figure">Figure 4: Back to back block transfer</p>
+<p id="rfc.section.B.1.p.3">If there is any doubt about whether all sent sequence numbers of a Request-Tag value are either acknowledged or off the window, the client uses a different value as in <a href="#example-afterloss">Figure 5</a>. The client here uses the shortest possible value, the empty string:</p>
+<div id="rfc.figure.5"/>
+<div id="example-afterloss"/>
+<pre>
+Client         Server
+   |             |
+   [1]-----------&gt;    POST "incarcerate" (Block1: 0, more to come)
+   |             |
+   &lt;----------[11]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [2]---X       |    POST "valjean" (Block1: 1, last block)
+   |             |
+
+(extended network outage; when it's over, the client attempts a different
+operation:)
+
+   [3]-----------&gt;    POST "promote" (Block1: 0, more to come;
+   |             |        Request-Tag: "")
+   |             |
+   &lt;----------[12]    2.31 Continue (Block1: 0 received, send more)
+   |             |
+   [4]-----------&gt;    POST "javert" (Block1: 1, last block;
+   |             |        Request-Tag: "")
+   |             |
+   &lt;----------[14]    2.04 Javert promoted (Block1: 1 received)
+</pre>
+<p class="figure">Figure 5: Behavior after extended package loss</p>
 <h1 id="rfc.authors">
   <a href="#rfc.authors">Author's Address</a>
 </h1>
