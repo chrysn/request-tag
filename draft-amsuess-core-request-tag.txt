@@ -4,8 +4,8 @@
 
 CoRE Working Group                                            C. Amsuess
 Internet-Draft                               Energy Harvesting Solutions
-Intended status: Standards Track                          March 19, 2017
-Expires: September 20, 2017
+Intended status: Standards Track                          March 20, 2017
+Expires: September 21, 2017
 
 
                            Request-Tag option
@@ -19,7 +19,7 @@ Abstract
    security properties that Object Security of CoAP (OSCOAP,
    [I-D.ietf-core-object-security]) provides for single requests to
    blockwise transfers.  The security of blockwise transfer in OSCOAP is
-   reflected on here.
+   reflected on in a dedicated section.
 
 Status of This Memo
 
@@ -36,7 +36,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on September 20, 2017.
+   This Internet-Draft will expire on September 21, 2017.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Amsuess                Expires September 20, 2017               [Page 1]
+Amsuess                Expires September 21, 2017               [Page 1]
 
 Internet-Draft             Request-Tag option                 March 2017
 
@@ -64,19 +64,20 @@ Internet-Draft             Request-Tag option                 March 2017
 Table of Contents
 
    1.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   2
-   2.  Blockwise transfer cases  . . . . . . . . . . . . . . . . . .   3
-     2.1.  Attack scenarios  . . . . . . . . . . . . . . . . . . . .   5
-       2.1.1.  "Promote Valjean" (on blockwise case SN)  . . . . . .   6
-       2.1.2.  "Free the hitman" (blockwise case SN or SS) . . . . .   7
-   3.  The Request-Tag option  . . . . . . . . . . . . . . . . . . .   8
-   4.  For inclusion in OSCOAP . . . . . . . . . . . . . . . . . . .  10
-   5.  Rationale . . . . . . . . . . . . . . . . . . . . . . . . . .  11
-   6.  Security Considerations . . . . . . . . . . . . . . . . . . .  11
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
-   8.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
-     8.1.  Normative References  . . . . . . . . . . . . . . . . . .  12
-     8.2.  Informative References  . . . . . . . . . . . . . . . . .  12
-   Appendix A.  Use of Request-Tag by proxies  . . . . . . . . . . .  12
+   2.  The Request-Tag option  . . . . . . . . . . . . . . . . . . .   3
+     2.1.  For inclusion in OSCOAP . . . . . . . . . . . . . . . . .   4
+   3.  Security properties of blockwise transfer . . . . . . . . . .   5
+     3.1.  Blockwise transfer cases  . . . . . . . . . . . . . . . .   6
+     3.2.  Attack scenarios  . . . . . . . . . . . . . . . . . . . .   8
+       3.2.1.  "Promote Valjean" (on blockwise case SN)  . . . . . .   9
+       3.2.2.  "Free the hitman" (blockwise case SN or SS) . . . . .  10
+   4.  Rationale . . . . . . . . . . . . . . . . . . . . . . . . . .  11
+   5.  Security Considerations . . . . . . . . . . . . . . . . . . .  12
+   6.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  12
+   7.  References  . . . . . . . . . . . . . . . . . . . . . . . . .  12
+     7.1.  Normative References  . . . . . . . . . . . . . . . . . .  12
+     7.2.  Informative References  . . . . . . . . . . . . . . . . .  12
+   Appendix A.  Use of Request-Tag by proxies  . . . . . . . . . . .  13
    Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  13
 
 1.  Introduction
@@ -108,8 +109,7 @@ Table of Contents
 
 
 
-
-Amsuess                Expires September 20, 2017               [Page 2]
+Amsuess                Expires September 21, 2017               [Page 2]
 
 Internet-Draft             Request-Tag option                 March 2017
 
@@ -124,13 +124,11 @@ Internet-Draft             Request-Tag option                 March 2017
    by other security mechanisms (eg.  CoAP over DTLS), or for other
    purposes (see Appendix A).
 
-   [Author's note: At a later stage of this draft, the possibility of
-   moving the Request-Tag value into the AAD as to not spend transmitted
-   bytes on it, eg. by mandating OSCOAP clients to use the partial IV as
-   Request-Tag. This requires ensured agreement between server and
-   client about whether or not a Request-Tag is present, which can
-   hopefully be obtained in the analysis of the various forms a
-   blockwise exchange can take.]
+   In order to minimize the impact on message sizes, the Request-Tag
+   option is designed to be only used when required[, and its
+   interaction with OSCOAP should mandate actively setting it only in
+   rare cases.  If this is still insufficient, compressing it into the
+   AAD can still be considered].
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
@@ -141,12 +139,169 @@ Internet-Draft             Request-Tag option                 March 2017
    REST "operation", while a request and response message (as matched by
    their tokens) is called an "exchange".
 
-2.  Blockwise transfer cases
+2.  The Request-Tag option
+
+   A new option is defined for all request methods:
+
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| No. | C | U | N | R | Name                  | Format | Length | Default |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+
+C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
+
+                         Figure 1: Option summary
+
+   It is critical (because a client that wants to secure its request
+   body can't have a server ignore it), unsafe (because it needs to
+   understood by any proxy that does blockwise (dis)assembly), and not
+   repeatable.  ([Does "unsafe" make nocachekey irrelevant?  I think
+   so.])
+
+   A client MAY set the Request-Tag option to indicate that the
+   receiving server MUST NOT act on any block in the same blockwise
+
+
+
+
+Amsuess                Expires September 21, 2017               [Page 3]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+   operation that has a different Request-Tag set.  A server MUST NOT
+   use blocks with and blocks without Request-Tag option either.
+
+   [Note on future development: If it turns out we need to compress the
+   option into the AAD, this might hook in here and specify that when
+   OSCOAP and blockwise is in use, the client MUST set a Request-Tag if
+   and only if it sets a Block1 option in descriptive usage, and is
+   value MUST be the partial IV of that message.  That value MUST then
+   be included somewhere in the AAD of every block message _after_ the
+   first, where this compression proposal so far fails because the
+   verifying server would have to know at AAD-building time whether or
+   not this is an inner blockwise request.]
+
+   If the Request-Tag option is set, the client MAY perform simultaneous
+   operations that utilize Block1 fragmentation from the same endpoint
+   towards the same resource, lifting the limitation of [RFC7959]
+   section 2.5.  The server is still under no obligation to keep state
+   of more than one transaction.  When an operation is in progress and a
+   second one can not be served at the same time, the server MUST either
+   respond to the second request with a 5.03 response code (in which it
+   SHOULD indicate the time it is willing to wait for additional blocks
+   in the first open operation in the Max-Age option), or cancel the
+   first operation by responding 4.08 in subsequent exchanges in the
+   first operations.  Clients that see the latter behavior SHOULD [or
+   MUST?] fall back to serializing requests as it would without the
+   Request-Tag option.
+
+   [Author's note: The above paragraph sounds problematic to me.  For
+   further exploration of those error cases, I'd need to know how
+   simultaneous operations (even on different resources) from different
+   endpoints are handled in constrained clients; I only did stateless
+   operations in constrained devices so far.]
+
+   The option is not used in responses.
+
+   If a request that uses Request-Tag is rejected with 4.02 Bad Option,
+   the client MAY retry the operation without it, but it then needs to
+   serialize all operations that affect the same resource.  Security
+   requirements can forbid dropping the Request-Tag option.
+
+2.1.  For inclusion in OSCOAP
+
+   [Author's note: If this stays a document of its own, OSCOAP should
+   make a normative reference to it and state something like:
+
+      Whenever the Block1 option is used as inner option, the Request-
+      Tag option must be considered.  A Request-Tag value (where the
+      absence of a Request-Tag option is counted as a value too, and
+
+
+
+Amsuess                Expires September 21, 2017               [Page 4]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+      distinct from the empty option) can only be reused when all
+      request messages sent in a different exchange with the same option
+      value have either been answered (and successfully unprotected), or
+      their sender sequence numbers are considered invalid by the server
+      (as proven by a response to a request that bore a request sequence
+      number greater than the old messages' sequence number plus the
+      server's recipient window size).
+
+      If the client follows the suggestion of only storing its own
+      sequence numbers to persistent memory every K requests, it must
+      increment the stored sequence number counter before using the last
+      window-size sequence numbers available, because the remaining
+      sequence numbes might only be used with certain constraints (it
+      might be necessary to set a Request-Tag on them).
+
+   With this text, clients could even work around ever needing to send
+   the option by pushing any failed exchange attempts out of the window,
+   although I'd consider that bad behavior.
+
+   AFAICT this would be the first actual use of the window size; so far
+   client and server can well interact with different replay window
+   sizes.  Probably it's OK to be the first user of the parameter.
+
+   For the options list:
+
+   The Request-Discriminator option is added to the "E=*" category in
+   the options list, and is listed together with Block1/2 in all other
+   places they are mentioned.
+
+   For somewhere else (?):
+
+   A server responding an inner Block2 option SHOULD use an ETag on it,
+   even if the result is not cachable (eg. the response to a POST
+   request), and take reasonable measures against identical ETags on
+   distinct states, otherwise OSCOAP does not provide integrity
+   protection of the response body.
+
+   ]
+
+3.  Security properties of blockwise transfer
+
+   Blockwise transfer, specified in [RFC7959], fragments REST operations
+   into exchanges of individual blocks.  It provides, at the discretion
+   of the server, direct access to parts of a resource representation
+   (where the client can fetch or send any block in any sequence, also
+   called "random access") or sequential access (where the operation is
+   started by exchanging the first block, and terminates in the exchange
+   of the last block).
+
+
+
+Amsuess                Expires September 21, 2017               [Page 5]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+   The individual blocks are correlated only by the client _endpoint_
+   (or security context if applicable), the requested _URI_, and _time_
+   (and thereby server state, where the operation is available at most
+   until another request with the same endpoint/URI combination
+   arrives).
+
+   The specification does include security considerations, which do
+   advise against allowing random write access, but does not contain a
+   mechanism that allows protecting the integrity of the operation's
+   body.  Consequently, the attacks described below are possible even
+   when blockwise transfer is used over DTLS to the author's knowledge.
+
+3.1.  Blockwise transfer cases
 
    There are several shapes a blockwise exchange can take, named here
    for further reference.  Requests or responses bodies are called
    "small" or "large" here if they do or do not, respectively, fit in a
-   single message.  Empty bodies are small.
+   single message.  Empty bodies are small.  Naming consists of case
+   discrimination letters for No blockwise, Sequential transfer and
+   Random access in the Block1 and Block2 phases, respectively.
 
    [Author's note: I'd appreciate real examples to replace the more
    contrived ones; the worst are marked with (?).]
@@ -160,15 +315,6 @@ Internet-Draft             Request-Tag option                 March 2017
 
    o  _NS_: A small request causes a large response, which gets
       fragmented and sequentially fetched by the client.
-
-
-
-
-
-Amsuess                Expires September 20, 2017               [Page 3]
-
-Internet-Draft             Request-Tag option                 March 2017
-
 
       Examples: GETting an unfiltered link-format list, PUTting a
       compressed image to a picture frame that decides to return its
@@ -184,6 +330,14 @@ Internet-Draft             Request-Tag option                 March 2017
       constitute a single or distinct REST operations; that's a general
       issue that should be pointed out.  Note, however, that the _SS_
       case _does_ provide that distinction! ["making non-blockwise as
+
+
+
+Amsuess                Expires September 21, 2017               [Page 6]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
       safe as blockwise" is not part of the mission statement (only the
       other way round), so probably we should accept this here and not
       try to provide that assurance - it would make every request a
@@ -218,17 +372,9 @@ Internet-Draft             Request-Tag option                 March 2017
       the server would in that scenario send successful responses after
       each block or small groups of blocks.
 
-
-
-
-Amsuess                Expires September 20, 2017               [Page 4]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
       Examples: Storing data in a memory region of a device. (?)
 
-      Integrity porteciton: The client can set a Request-Tag if it wants
+      Integrity protection: The client can set a Request-Tag if it wants
       to group operations, but there is presumably [check!] no
       correlation to protect anyway.
 
@@ -240,6 +386,14 @@ Internet-Draft             Request-Tag option                 March 2017
    o  _RS_: [That's a tough one.  A) I can't come up with examples, and
       B) the same section 2.7 says that Block2 processing starts when
       the _last_ block is done, implying that the request is sequential
+
+
+
+Amsuess                Expires September 21, 2017               [Page 7]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
       but not outright prescribing it.  Furthermore, can there be
       inbetween successful replies? ]
 
@@ -248,13 +402,18 @@ Internet-Draft             Request-Tag option                 March 2017
       transmitted in full.
 
       Integrity protection: The client sets a Request-Tag as in the _SN_
-      case.  In Block2 phase, ... [Author, continue here - I would have
-      expected that the Block2 clocking-out of data happens while
-      continuously retransmitting the last Block1 part, while actually
-      it happens without a Block1 option at all.  Still, I'd like to
-      have Request-Tag set, but do we need that actually for protection,
-      or would it just be convenient because otherwise Block2 requests
-      can get mixed up at proxying?]
+      case.  The last exchange (itself protected by OSCOAP's request/
+      response matching) carries the Request-Tag option, and as with
+      _NS_, the server sets an ETag.
+
+      This is a case for which the Request-Tag use might need extending
+      to the Block2 phase; while the protection is sufficient by passing
+      the link on from Request-Tag to ETag, the server's state might be
+      overridden by a simultaneous request (which the Request-Tag option
+      promises to deal with), and the client may fail to retrieve the
+      data because another request clears the state.  This is
+      problematic more for the proxy use case than for protected
+      blockwise transfers.
 
    [Note that the _NS_ picture frame example is by far the worst and
    farest-fetched.  I'd like to have an example of a non-safe request
@@ -263,7 +422,7 @@ Internet-Draft             Request-Tag option                 March 2017
    bearing a Location), but not outright forbidden, and catered for in
    blockwise where it comes to combined use of Block1 and Block2.]
 
-2.1.  Attack scenarios
+3.2.  Attack scenarios
 
    This section outlines some attacks that should be mitigated by the
    Request-Tag option.  They are written with a malicious proxy between
@@ -275,18 +434,23 @@ Internet-Draft             Request-Tag option                 March 2017
    The illustrations draw terminology (especially the "@" and "X"
    symbols) from [I-D.mattsson-core-coap-actuators].
 
-
-
-Amsuess                Expires September 20, 2017               [Page 5]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
    The scenarios typically require the attacker to have a good idea of
    the content of the packages that are transferred.  Note that the
    attacker can see the codes of the messages.
 
-2.1.1.  "Promote Valjean" (on blockwise case SN)
+
+
+
+
+
+
+
+Amsuess                Expires September 21, 2017               [Page 8]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+3.2.1.  "Promote Valjean" (on blockwise case SN)
 
    In this scenario, blocks from two operations on a POST-accepting
    resource are combined to make the server execute an action that was
@@ -320,24 +484,12 @@ Internet-Draft             Request-Tag option                 March 2017
       |      X<-----+    2.04 Valjean Promoted
 
 
-                         Figure 1: Attack example
-
-   [Sequence note: the below refers to so-far unexplained semantics of
-   Request-Tag, this needs to be resolved.]
+                         Figure 2: Attack example
 
    With Request-Tag in place, the client would have assigned a different
    Request-Tag to the "promote" line, and the server would have either
    reacted to the "valjean" POST by incarcerating valjean (if it could
    keep both operation states at the same time), or responded 5.03 to
-
-
-
-
-Amsuess                Expires September 20, 2017               [Page 6]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
    the "promote" request until a timeout, or responded 4.08 to the
    injected "valjean" request.
 
@@ -347,7 +499,14 @@ Internet-Draft             Request-Tag option                 March 2017
    use ("valjean") is dropped from the server's window, and thus the
    sever would not accept its replay.
 
-2.1.2.  "Free the hitman" (blockwise case SN or SS)
+
+
+Amsuess                Expires September 21, 2017               [Page 9]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+3.2.2.  "Free the hitman" (blockwise case SN or SS)
 
    In this example, mismatched Block1 packages against a resource that
    passes judgement are mixed up to create a response matched to the
@@ -359,40 +518,6 @@ Internet-Draft             Request-Tag option                 March 2017
    server for responding leniently to another operation that would
    originally have been "Hitman killed someone.  What shall we do with
    him?" - "Hang him.".
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Amsuess                Expires September 20, 2017               [Page 7]
-
-Internet-Draft             Request-Tag option                 March 2017
-
 
 Client   Foe   Server
    |      |      |
@@ -421,7 +546,7 @@ urgent:)
    <-------------+    2.05 "Set him free."
                           (Block1: 1 received, and this is the result)
 
-                         Figure 2: Attack example
+                         Figure 3: Attack example
 
    The example works equivalently with longer responses, placing it in
    the _SS_ category instead of the _SN_.
@@ -429,140 +554,15 @@ urgent:)
    [More examples would help, especially for the other blockwise cases.
    Is it relevant to distinguish non-piggybacked responses?]
 
-3.  The Request-Tag option
-
-   A new option is defined for all request methods:
-
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-| No. | C | U | N | R | Name                  | Format | Length | Default |
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-
-C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
-
-                         Figure 3: Option summary
 
 
 
-Amsuess                Expires September 20, 2017               [Page 8]
+Amsuess                Expires September 21, 2017              [Page 10]
 
 Internet-Draft             Request-Tag option                 March 2017
 
 
-   It is critical (because a client that wants to secure its request
-   body can't have a server ignore it), unsafe (because it needs to
-   understood by any proxy that does blockwise (dis)assembly), and not
-   repeatable.  ([Does "unsafe" make nocachekey irrelevant?  I think
-   so.])
-
-   A client MAY set the Request-Tag option to indicate that the
-   receiving server MUST NOT act on any block in the same blockwise
-   operation that has a different Request-Tag set.
-
-   [Note on future development: This is probably where OSCOAP
-   compression could come in and say that when OSCOAP and blockwise is
-   in use, the client MUST set a Request-Tag if and only if it sets a
-   Block1 option in descriptive usage, and is value MUST be the partial
-   IV of that message.  That value MUST then be included somewhere in
-   the AAD of every block message _after_ the first, where this
-   compression proposal so far fails because the verifying server would
-   have to know at AAD-building time whether or not this is an inner
-   blockwise request.]
-
-   If the Request-Tag option is set, the client MAY perform simultaneous
-   operations that utilize Block1 fragmentation from the same endpoint
-   towards the same resource, lifting the limitation of [RFC7959]
-   section 2.5.  The server is still under no obligation to keep state
-   of more than one transaction.  When an operation is in progress and a
-   second one can not be served at the same time, the server MUST either
-   respond to the second request with a 5.03 response code (in which it
-   SHOULD indicate the time it is willing to wait for additional blocks
-   in the first open operation in the Max-Age option), or cancel the
-   first operation by responding 4.08 in subsequent exchanges in the
-   first operations.  Clients that see the latter behavior SHOULD [or
-   MUST?] fall back to serializing requests as it would without the
-   Request-Tag option.
-
-   [Author's note: The above paragraph sounds problematic to me.  For
-   further exploration of those error cases, I'd need to know how
-   simultaneous operations (even on different resources) from different
-   endpoints are handled in constrained clients; I only did stateless
-   operations in constrained devices so far.]
-
-   The option is not used in responses.
-
-   If a request that uses Request-Tag is rejected with 4.02 Bad Option,
-   the client MAY retry the operation without it, but it then needs to
-   serialize all operations that affect the same resource.  Security
-   requirements can forbid dropping the Request-Tag option.
-
-
-
-
-
-Amsuess                Expires September 20, 2017               [Page 9]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
-4.  For inclusion in OSCOAP
-
-   [Editor's note: If this stays a document of its own, OSCOAP should
-   make a normative reference to it and state something like:]
-
-   Whenever the Block1 option is used as inner option, the Request-Tag
-   option must be used.  The option value must not be reused until any
-   request messages sent in a different exchange with the same option
-   value have been answered and their answers have been successfully
-   unprotected, or the sender sequence numbers are considered invalid by
-   the server (as proven by a response to a request that bore a request
-   sequence number greater than the old messages' sequence number plus
-   the window size).
-
-   If the client follows the suggestion of only storing its own sequence
-   numbers to persistent memory every K requests, it needs to make sure
-   to mark seqno plus windowsize as used, because the next windowsize
-   options can only be used with certain constraints.
-
-   [Author's note: We could ease the requirement for possibly difficult
-   compression here by allowing no Request-Tag option too under the same
-   reuse rules (ie. it'd be OK the first time and then again after ACKs
-   or some traffic).  Clients could then even work around ever needing
-   to send the option by pushing the failed attempts out of the window,
-   although I'd consider that bad behavior.]
-
-   [Author's note: AFAICT this would be the first actual use of the
-   window size; so far client and server can well interact with
-   different replay window sizes.  Probably it's OK to be the first user
-   of the parameter.]
-
-   [For the options list:]
-
-   The Request-Discriminator option is added to the "E=*" category in
-   the options list, and is listed together with Block1/2 in all other
-   places they are mentioned.
-
-   [For somewhere else (?):]
-
-   A server responding an inner Block2 option SHOULD use an ETag on it,
-   even if the result is not cachable (eg. the response to a POST
-   request), and take reasonable measures against identical ETags on
-   distinct states, otherwise OSCOAP does not provide integrity
-   protection of the response body.
-
-
-
-
-
-
-
-Amsuess                Expires September 20, 2017              [Page 10]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
-5.  Rationale
+4.  Rationale
 
    This part is informative and serves to illustrate why this option is
    necessary, and how it is different from similar concepts.
@@ -572,7 +572,7 @@ Internet-Draft             Request-Tag option                 March 2017
    o  forbid out-of-order sequence numbers in blockwise?
 
       This could be a viable path.  To see whether this works, the
-      Section 2 chapter would hopefully help.  (It should not rule out
+      Section 3.1 chapter would hopefully help.  (It should not rule out
       legitimate cases of random acces, after all).
 
       This would exclude other uses of the option like that in
@@ -600,7 +600,25 @@ Internet-Draft             Request-Tag option                 March 2017
       might result in less normative text with more comments, and
       possibly have similar effects in implementation codebases.
 
-6.  Security Considerations
+      A Request-Discriminator option could, among other things, be used
+      by a proxies that act as OSCOAP terminators (eg. network
+      interfaces in composite devices that use unencrypted CoAP on
+      internal serial lines) to disambiguate request from different
+      security contexts towards crypto-unware but blockwise-capable
+      components.
+
+
+
+
+
+
+
+Amsuess                Expires September 21, 2017              [Page 11]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+5.  Security Considerations
 
    When used in combination with OSCOAP or other security layers to
    prevent block mixing between REST operations, it is crucial to only
@@ -610,24 +628,16 @@ Internet-Draft             Request-Tag option                 March 2017
 
    While the Request-Tag is not echoed back by the server unlike the
    Token, the client should still refrain from setting it to internal
-
-
-
-Amsuess                Expires September 20, 2017              [Page 11]
-
-Internet-Draft             Request-Tag option                 March 2017
-
-
    values (like memory address of state data) to avoid exposing internal
    data to a server that it could use in unrelated attacks.
 
-7.  IANA Considerations
+6.  IANA Considerations
 
    [Missing: have a number assigned and the option published]
 
-8.  References
+7.  References
 
-8.1.  Normative References
+7.1.  Normative References
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -639,7 +649,7 @@ Internet-Draft             Request-Tag option                 March 2017
               DOI 10.17487/RFC7252, June 2014,
               <http://www.rfc-editor.org/info/rfc7252>.
 
-8.2.  Informative References
+7.2.  Informative References
 
    [I-D.ietf-core-object-security]
               Selander, G., Mattsson, J., Palombini, F., and L. Seitz,
@@ -657,6 +667,13 @@ Internet-Draft             Request-Tag option                 March 2017
               DOI 10.17487/RFC7959, August 2016,
               <http://www.rfc-editor.org/info/rfc7959>.
 
+
+
+Amsuess                Expires September 21, 2017              [Page 12]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
 Appendix A.  Use of Request-Tag by proxies
 
    In pre-OSCOAP practice, proxies rarely face situations where
@@ -666,13 +683,6 @@ Appendix A.  Use of Request-Tag by proxies
    resource.  (If that happens, the proxy can either serialize the
    requests, or 5.03 the second requester until the first request has
    completed).
-
-
-
-Amsuess                Expires September 20, 2017              [Page 12]
-
-Internet-Draft             Request-Tag option                 March 2017
-
 
    With OSCOAP, all clients access the resource "/" as far as a proxy is
    concerned, which would lead to more frequent situations in which it
@@ -715,14 +725,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-
-Amsuess                Expires September 20, 2017              [Page 13]
+Amsuess                Expires September 21, 2017              [Page 13]
