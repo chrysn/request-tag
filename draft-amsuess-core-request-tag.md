@@ -83,6 +83,66 @@ interchange of a request and a response body is called a REST "operation",
 while a request and response message (as matched by their tokens) is called an
 "exchange".
 
+
+The Request-Tag option
+======================
+
+A new option is defined for all request methods:
+
+~~~~~~~~~~
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| No. | C | U | N | R | Name                  | Format | Length | Default |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
++-----+---+---+---+---+-----------------------+--------+--------+---------+
+
+C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
+~~~~~~~~~~
+{: #optsum title="Option summary"}
+
+It is critical (because a client that wants to secure its request body can't
+have a server ignore it), unsafe (because it needs to understood by any proxy
+that does blockwise (dis)assembly), and not repeatable. (\[Does "unsafe" make
+nocachekey irrelevant? I think so.\])
+
+A client MAY set the Request-Tag option to indicate that the receiving server
+MUST NOT act on any block in the same blockwise operation that has a different
+Request-Tag set.
+
+\[Note on future development: This is probably where OSCOAP compression could
+come in and say that when OSCOAP and blockwise is in use, the client MUST set a
+Request-Tag if and only if it sets a Block1 option in descriptive usage, and is
+value MUST be the partial IV of that message. That value MUST then be included
+somewhere in the AAD of every block message *after* the first, where this
+compression proposal so far fails because the verifying server would have to
+know at AAD-building time whether or not this is an inner blockwise request.\]
+
+If the Request-Tag option is set, the client MAY perform simultaneous
+operations that utilize Block1 fragmentation from the same endpoint towards the
+same resource, lifting the limitation of {{RFC7959}} section 2.5. The server is
+still under no obligation to keep state of more than one transaction. When an
+operation is in progress and a second one can not be served at the same time,
+the server MUST either respond to the second request with a 5.03 response code
+(in which it SHOULD indicate the time it is willing to wait for additional
+blocks in the first open operation in the Max-Age option), or cancel the first
+operation by responding 4.08 in subsequent exchanges in the first operations.
+Clients that see the latter behavior SHOULD \[or MUST?\] fall back to
+serializing requests as it would without the Request-Tag option.
+
+\[Author's note: The above paragraph sounds problematic to me. For further
+exploration of those error cases, I'd need to know how simultaneous operations
+(even on different resources) from different endpoints are handled in
+constrained clients; I only did stateless operations in constrained devices so
+far.\]
+
+The option is not used in responses.
+
+If a request that uses Request-Tag is rejected with 4.02 Bad Option, the client
+MAY retry the operation without it, but it then needs to serialize all
+operations that affect the same resource. Security requirements can forbid
+dropping the Request-Tag option.
+
+
 Security properties of blockwise transfer
 =========================================
 
@@ -106,9 +166,6 @@ the author's knowledge.
 
 Blockwise transfer cases {#transfercases}
 -----------------------------------------
-
-\[Sequence note: the below refers to so-far unexplained semantics of
-Request-Tag, this needs to be resolved.\]
 
 There are several shapes a blockwise exchange can take, named here for further
 reference. Requests or responses bodies are called "small" or "large" here if
@@ -317,64 +374,6 @@ category instead of the *SN*.
 
 \[More examples would help, especially for the other blockwise cases. Is it
 relevant to distinguish non-piggybacked responses?\]
-
-The Request-Tag option
-======================
-
-A new option is defined for all request methods:
-
-~~~~~~~~~~
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-| No. | C | U | N | R | Name                  | Format | Length | Default |
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-| TBD | x | x | - |   | Request-Tag           | opaque |    0-8 | (none)  |
-+-----+---+---+---+---+-----------------------+--------+--------+---------+
-
-C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
-~~~~~~~~~~
-{: #optsum title="Option summary"}
-
-It is critical (because a client that wants to secure its request body can't
-have a server ignore it), unsafe (because it needs to understood by any proxy
-that does blockwise (dis)assembly), and not repeatable. (\[Does "unsafe" make
-nocachekey irrelevant? I think so.\])
-
-A client MAY set the Request-Tag option to indicate that the receiving server
-MUST NOT act on any block in the same blockwise operation that has a different
-Request-Tag set.
-
-\[Note on future development: This is probably where OSCOAP compression could
-come in and say that when OSCOAP and blockwise is in use, the client MUST set a
-Request-Tag if and only if it sets a Block1 option in descriptive usage, and is
-value MUST be the partial IV of that message. That value MUST then be included
-somewhere in the AAD of every block message *after* the first, where this
-compression proposal so far fails because the verifying server would have to
-know at AAD-building time whether or not this is an inner blockwise request.\]
-
-If the Request-Tag option is set, the client MAY perform simultaneous
-operations that utilize Block1 fragmentation from the same endpoint towards the
-same resource, lifting the limitation of {{RFC7959}} section 2.5. The server is
-still under no obligation to keep state of more than one transaction. When an
-operation is in progress and a second one can not be served at the same time,
-the server MUST either respond to the second request with a 5.03 response code
-(in which it SHOULD indicate the time it is willing to wait for additional
-blocks in the first open operation in the Max-Age option), or cancel the first
-operation by responding 4.08 in subsequent exchanges in the first operations.
-Clients that see the latter behavior SHOULD \[or MUST?\] fall back to
-serializing requests as it would without the Request-Tag option.
-
-\[Author's note: The above paragraph sounds problematic to me. For further
-exploration of those error cases, I'd need to know how simultaneous operations
-(even on different resources) from different endpoints are handled in
-constrained clients; I only did stateless operations in constrained devices so
-far.\]
-
-The option is not used in responses.
-
-If a request that uses Request-Tag is rejected with 4.02 Bad Option, the client
-MAY retry the operation without it, but it then needs to serialize all
-operations that affect the same resource. Security requirements can forbid
-dropping the Request-Tag option.
 
 
 For inclusion in OSCOAP
