@@ -80,7 +80,8 @@ Table of Contents
    Appendix A.  Use of Request-Tag by proxies  . . . . . . . . . . .  13
    Appendix B.  Examples . . . . . . . . . . . . . . . . . . . . . .  13
      B.1.  OSCOAP inner-blockwise  . . . . . . . . . . . . . . . . .  13
-   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  15
+     B.2.  Use by proxies  . . . . . . . . . . . . . . . . . . . . .  15
+   Author's Address  . . . . . . . . . . . . . . . . . . . . . . . .  16
 
 1.  Introduction
 
@@ -105,7 +106,6 @@ Table of Contents
    The goal of this memo is to provide protection to the bodies of a
    blockwise fragmented request/response pair that is equivalent to the
    protection that would be provided if the complete request and
-   response bodies fit into single messae each.  (Packing long payloads
 
 
 
@@ -114,6 +114,7 @@ Amsuess                Expires September 21, 2017               [Page 2]
 Internet-Draft             Request-Tag option                 March 2017
 
 
+   response bodies fit into single messae each.  (Packing long payloads
    into single OSCOAP messages is actually possible using the outer
    blockwise mechanism, but does not go well with the constraints of
    devices CoAP is designed for).  [Author's note: The results of this
@@ -160,7 +161,6 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
    understood by any proxy that does blockwise (dis)assembly), and not
    repeatable.  ([Does "unsafe" make nocachekey irrelevant?  I think
    so.])
-
 
 
 
@@ -416,7 +416,12 @@ Internet-Draft             Request-Tag option                 March 2017
       promises to deal with), and the client may fail to retrieve the
       data because another request clears the state.  This is
       problematic more for the proxy use case than for protected
-      blockwise transfers.
+      blockwise transfers.  It is not fatal for the proxy case, though:
+      It would need to serialize only the last exchange of the Block1
+      phase and the complete Block2 phase, but in that it does not
+      depend on the client's data any more, can finish the Block2 phase
+      quickly and spool the data for the client to fetch before
+      finishing the next operation.
 
    [Note that the _NS_ picture frame example is by far the worst and
    farest-fetched.  I'd like to have an example of a non-safe request
@@ -437,11 +442,6 @@ Internet-Draft             Request-Tag option                 March 2017
    The illustrations draw terminology (especially the "@" and "X"
    symbols) from [I-D.mattsson-core-coap-actuators].
 
-   The scenarios typically require the attacker to have a good idea of
-   the content of the packages that are transferred.  Note that the
-   attacker can see the codes of the messages.
-
-
 
 
 
@@ -449,6 +449,10 @@ Amsuess                Expires September 21, 2017               [Page 8]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+   The scenarios typically require the attacker to have a good idea of
+   the content of the packages that are transferred.  Note that the
+   attacker can see the codes of the messages.
 
 3.2.1.  "Promote Valjean" (on blockwise case SN)
 
@@ -493,11 +497,7 @@ Internet-Draft             Request-Tag option                 March 2017
    the "promote" request until a timeout, or responded 4.08 to the
    injected "valjean" request.
 
-   The client would only have been free to use the same Request-Tag on
-   the "promote" POST as on the "incarcerate" POST if, in the meantime,
-   it had exchanged enough messages that the latest message of the first
-   use ("valjean") is dropped from the server's window, and thus the
-   sever would not accept its replay.
+
 
 
 
@@ -505,6 +505,12 @@ Amsuess                Expires September 21, 2017               [Page 9]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+   The client would only have been free to use the same Request-Tag on
+   the "promote" POST as on the "incarcerate" POST if, in the meantime,
+   it had exchanged enough messages that the latest message of the first
+   use ("valjean") is dropped from the server's window, and thus the
+   sever would not accept its replay.
 
 3.2.2.  "Free the hitman" (blockwise case SN or SS)
 
@@ -548,12 +554,6 @@ urgent:)
 
                          Figure 3: Attack example
 
-   The example works equivalently with longer responses, placing it in
-   the _SS_ category instead of the _SN_.
-
-   [More examples would help, especially for the other blockwise cases.
-   Is it relevant to distinguish non-piggybacked responses?]
-
 
 
 
@@ -561,6 +561,12 @@ Amsuess                Expires September 21, 2017              [Page 10]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+   The example works equivalently with longer responses, placing it in
+   the _SS_ category instead of the _SN_.
+
+   [More examples would help, especially for the other blockwise cases.
+   Is it relevant to distinguish non-piggybacked responses?]
 
 4.  Rationale
 
@@ -604,12 +610,6 @@ Internet-Draft             Request-Tag option                 March 2017
       by a proxies that act as OSCOAP terminators (eg. network
       interfaces in composite devices that use unencrypted CoAP on
       internal serial lines) to disambiguate request from different
-      security contexts towards crypto-unware but blockwise-capable
-      components.
-
-
-
-
 
 
 
@@ -617,6 +617,9 @@ Amsuess                Expires September 21, 2017              [Page 11]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+      security contexts towards crypto-unware but blockwise-capable
+      components.
 
 5.  Security Considerations
 
@@ -661,11 +664,8 @@ Internet-Draft             Request-Tag option                 March 2017
               "Object Security of CoAP (OSCOAP)", draft-ietf-core-
               object-security-01 (work in progress), December 2016.
 
-   [I-D.mattsson-core-coap-actuators]
-              Mattsson, J., Fornehed, J., Selander, G., and F.
-              Palombini, "Controlling Actuators with CoAP", draft-
-              mattsson-core-coap-actuators-02 (work in progress),
-              November 2016.
+
+
 
 
 
@@ -673,6 +673,12 @@ Amsuess                Expires September 21, 2017              [Page 12]
 
 Internet-Draft             Request-Tag option                 March 2017
 
+
+   [I-D.mattsson-core-coap-actuators]
+              Mattsson, J., Fornehed, J., Selander, G., and F.
+              Palombini, "Controlling Actuators with CoAP", draft-
+              mattsson-core-coap-actuators-02 (work in progress),
+              November 2016.
 
 Appendix A.  Use of Request-Tag by proxies
 
@@ -712,12 +718,6 @@ B.1.  OSCOAP inner-blockwise
 
    Figure 4 shows how under usual circumstances, the Request-Tag option
    does not need to be set:
-
-
-
-
-
-
 
 
 
@@ -810,6 +810,71 @@ operation:)
 
               Figure 5: Behavior after extended package loss
 
+B.2.  Use by proxies
+
+   A proxy can use the Request-Tag option to work off operations from
+   different clients (indicated by the two origin lines under "Clients")
+   towards a single resource:
+
+  Clients Proxy  Server
+      |     |      |
+      +----->      |    POST "Homeless stole apples. Wh"
+      |     |      |        (Block1: 0, more to come)
+      |     |      |
+      |     +------>    POST "Homeless stole apples. Wh"
+      |     |      |        (Block1: 0, more to come)
+      |     |      |
+      |     <------+    2.31 Continue (Block1: 0 received, send more)
+      |     |      |
+      <-----+      |    2.31 Continue (Block1: 0 received, send more)
+    | |
+    |
+    +------->      |    POST "Hitman killed someone. Wh"
+    |       |      |        (Block1: 0, more to come)
+    |       |      |
+    |       +------>    POST "Hitman killed someone. Wh"
+    |       |      |        (Block1: 0, more to come; Request-Tag: "")
+
+
+
+Amsuess                Expires September 21, 2017              [Page 15]
+
+Internet-Draft             Request-Tag option                 March 2017
+
+
+    |       |      |
+    |       <------+    2.31 Continue (Block1: 0 received, send more)
+    |       |      |
+    <-------+      |    2.31 Continue (Block1: 0 received, send more)
+    |       |      |
+    | |     |      |
+      |----->      |    POST "at shall we do with him?"
+      |     |      |        (Block1: 1, last block)
+      |     |      |
+      |     +------>    POST "at shall we do with him?"
+      |     |      |        (Block1: 1, last block)
+      |     |      |
+      |     <------+    2.05 "Set him free."
+      |     |      |        (Block1: 1 received, and this is the result)
+      |     |      |
+      <-----+      |    2.05 "Set him free."
+    | |     |      |        (Block1: 1 received, and this is the result)
+    |
+    |------->      |    POST "at shall we do with him?"
+    |       |      |        (Block1: 1, last block)
+    |       |      |
+    |       +------>    POST "at shall we do with him?"
+    |       |      |        (Block1: 1, last block, Request-Tag: "")
+    |       |      |
+    |       <------+    2.05 "Hang him."
+    |       |      |        (Block1: 1 received, and this is the result)
+    |       |      |
+    <-------+      |    2.05 "Hang him."
+    |       |      |        (Block1: 1 received, and this is the result)
+
+
+                          Figure 6: Proxy example
+
 Author's Address
 
    Christian Amsuess
@@ -828,13 +893,4 @@ Author's Address
 
 
 
-
-
-
-
-
-
-
-
-
-Amsuess                Expires September 21, 2017              [Page 15]
+Amsuess                Expires September 21, 2017              [Page 16]

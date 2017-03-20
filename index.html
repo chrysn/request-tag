@@ -294,6 +294,7 @@ address {
 <link href="#rfc.appendix.A" rel="Chapter" title="A Use of Request-Tag by proxies"/>
 <link href="#rfc.appendix.B" rel="Chapter" title="B Examples"/>
 <link href="#rfc.appendix.B.1" rel="Chapter" title="B.1 OSCOAP inner-blockwise"/>
+<link href="#rfc.appendix.B.2" rel="Chapter" title="B.2 Use by proxies"/>
 <link href="#rfc.authors" rel="Chapter"/>
 
 
@@ -376,6 +377,7 @@ address {
 </ul><li>Appendix A.   <a href="#rfc.appendix.A">Use of Request-Tag by proxies</a></li>
 <li>Appendix B.   <a href="#rfc.appendix.B">Examples</a></li>
 <ul><li>B.1.   <a href="#rfc.appendix.B.1">OSCOAP inner-blockwise</a></li>
+<li>B.2.   <a href="#rfc.appendix.B.2">Use by proxies</a></li>
 </ul><li><a href="#rfc.authors">Author's Address</a></li>
 
 
@@ -450,7 +452,7 @@ C=Critical, U=Unsafe, N=NoCacheKey, R=Repeatable
   <li><em>RN</em>: A large request is sent in a random-access pattern, resulting in a small response(s) (typically, one response each, as the server would in that scenario send successful responses after each block or small groups of blocks.  <br/><br/> Examples: Storing data in a memory region of a device. (?)  <br/><br/> Integrity protection: The client can set a Request-Tag if it wants to group operations, but there is presumably [check!] no correlation to protect anyway.</li>
   <li><em>SR</em>, <em>RR</em>: Large requests (sequentially or randomly requested) that have their large responses fetched in random access patterns &#8211; these cases are explicitly forbidden in blockwise transfer (<a href="#RFC7959">[RFC7959]</a> section 2.7).</li>
   <li><em>RS</em>: [That&#8217;s a tough one. A) I can&#8217;t come up with examples, and B) the same section 2.7 says that Block2 processing starts when the <em>last</em> block is done, implying that the request is sequential but not outright prescribing it.  Furthermore, can there be inbetween successful replies? ]</li>
-  <li><em>SS</em>: A large request is sent sequentially, and the large response is fetched in sequential blocks after the request has been transmitted in full.  <br/><br/> Integrity protection: The client sets a Request-Tag as in the <em>SN</em> case. The last exchange (itself protected by OSCOAP&#8217;s request/response matching) carries the Request-Tag option, and as with <em>NS</em>, the server sets an ETag.  <br/><br/> This is a case for which the Request-Tag use might need extending to the Block2 phase; while the protection is sufficient by passing the link on from Request-Tag to ETag, the server&#8217;s state might be overridden by a simultaneous request (which the Request-Tag option promises to deal with), and the client may fail to retrieve the data because another request clears the state. This is problematic more for the proxy use case than for protected blockwise transfers.</li>
+  <li><em>SS</em>: A large request is sent sequentially, and the large response is fetched in sequential blocks after the request has been transmitted in full.  <br/><br/> Integrity protection: The client sets a Request-Tag as in the <em>SN</em> case. The last exchange (itself protected by OSCOAP&#8217;s request/response matching) carries the Request-Tag option, and as with <em>NS</em>, the server sets an ETag.  <br/><br/> This is a case for which the Request-Tag use might need extending to the Block2 phase; while the protection is sufficient by passing the link on from Request-Tag to ETag, the server&#8217;s state might be overridden by a simultaneous request (which the Request-Tag option promises to deal with), and the client may fail to retrieve the data because another request clears the state. This is problematic more for the proxy use case than for protected blockwise transfers. It is not fatal for the proxy case, though: It would need to serialize only the last exchange of the Block1 phase and the complete Block2 phase, but in that it does not depend on the client&#8217;s data any more, can finish the Block2 phase quickly and spool the data for the client to fetch before finishing the next operation.</li>
 </ul>
 <p id="rfc.section.3.1.p.4">[Note that the <em>NS</em> picture frame example is by far the worst and farest-fetched. I&#8217;d like to have an example of a non-safe request resulting in fragmented responses, but that behavior is usually discouraged (PUT responses typically being empty, POST responses bearing a Location), but not outright forbidden, and catered for in blockwise where it comes to combined use of Block1 and Block2.]</p>
 <h1 id="rfc.section.3.2"><a href="#rfc.section.3.2">3.2.</a> <a href="#attack-scenarios" id="attack-scenarios">Attack scenarios</a></h1>
@@ -638,6 +640,61 @@ operation:)
    &lt;----------[14]    2.04 Javert promoted (Block1: 1 received)
 </pre>
 <p class="figure">Figure 5: Behavior after extended package loss</p>
+<h1 id="rfc.appendix.B.2"><a href="#rfc.appendix.B.2">B.2.</a> <a href="#use-by-proxies" id="use-by-proxies">Use by proxies</a></h1>
+<p id="rfc.section.B.2.p.1">A proxy can use the Request-Tag option to work off operations from different clients (indicated by the two origin lines under &#8220;Clients&#8221;) towards a single resource:</p>
+<div id="rfc.figure.6"/>
+<div id="example-proxy"/>
+<pre>
+Clients Proxy  Server
+    |     |      |
+    +-----&gt;      |    POST "Homeless stole apples. Wh"
+    |     |      |        (Block1: 0, more to come)
+    |     |      |
+    |     +------&gt;    POST "Homeless stole apples. Wh"
+    |     |      |        (Block1: 0, more to come)
+    |     |      |
+    |     &lt;------+    2.31 Continue (Block1: 0 received, send more)
+    |     |      |
+    &lt;-----+      |    2.31 Continue (Block1: 0 received, send more)
+  | |
+  |
+  +-------&gt;      |    POST "Hitman killed someone. Wh"
+  |       |      |        (Block1: 0, more to come)
+  |       |      |
+  |       +------&gt;    POST "Hitman killed someone. Wh"
+  |       |      |        (Block1: 0, more to come; Request-Tag: "")
+  |       |      |
+  |       &lt;------+    2.31 Continue (Block1: 0 received, send more)
+  |       |      |
+  &lt;-------+      |    2.31 Continue (Block1: 0 received, send more)
+  |       |      |
+  | |     |      |
+    |-----&gt;      |    POST "at shall we do with him?"
+    |     |      |        (Block1: 1, last block)
+    |     |      |
+    |     +------&gt;    POST "at shall we do with him?"
+    |     |      |        (Block1: 1, last block)
+    |     |      |
+    |     &lt;------+    2.05 "Set him free."
+    |     |      |        (Block1: 1 received, and this is the result)
+    |     |      |
+    &lt;-----+      |    2.05 "Set him free."
+  | |     |      |        (Block1: 1 received, and this is the result)
+  |
+  |-------&gt;      |    POST "at shall we do with him?"
+  |       |      |        (Block1: 1, last block)
+  |       |      |
+  |       +------&gt;    POST "at shall we do with him?"
+  |       |      |        (Block1: 1, last block, Request-Tag: "")
+  |       |      |
+  |       &lt;------+    2.05 "Hang him."
+  |       |      |        (Block1: 1 received, and this is the result)
+  |       |      |
+  &lt;-------+      |    2.05 "Hang him."
+  |       |      |        (Block1: 1 received, and this is the result)
+
+</pre>
+<p class="figure">Figure 6: Proxy example</p>
 <h1 id="rfc.authors">
   <a href="#rfc.authors">Author's Address</a>
 </h1>
