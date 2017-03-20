@@ -144,7 +144,7 @@ dropping the Request-Tag option.
 
 
 For inclusion in OSCOAP
-=======================
+-----------------------
 
 \[Author's note: If this stays a document of its own, OSCOAP should make a
 normative reference to it and state something like:
