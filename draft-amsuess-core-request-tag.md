@@ -67,12 +67,10 @@ ephemeral and set by the client. It is phrased in a way that it can not only be
 used in OSCOAP, but also by other security mechanisms (eg. CoAP over DTLS), or
 for other purposes (see {{appendix-proxy}}).
 
-\[Author's note: At a later stage of this draft, the possibility of moving the
-Request-Tag value into the AAD as to not spend transmitted bytes on it, eg. by
-mandating OSCOAP clients to use the partial IV as Request-Tag. This requires
-ensured agreement between server and client about whether or not a Request-Tag
-is present, which can hopefully be obtained in the analysis of the various
-forms a blockwise exchange can take.\]
+In order to minimize the impact on message sizes, the Request-Tag option is
+designed to be only used when required\[, and its interaction with OSCOAP
+should mandate actively setting it only in rare cases. If this is still
+insufficient, compressing it into the AAD can still be considered\].
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD",
 "SHOULD NOT", "RECOMMENDED",  "MAY", and "OPTIONAL" in this document are to be
@@ -107,15 +105,17 @@ nocachekey irrelevant? I think so.\])
 
 A client MAY set the Request-Tag option to indicate that the receiving server
 MUST NOT act on any block in the same blockwise operation that has a different
-Request-Tag set.
+Request-Tag set. A server MUST NOT use blocks with and blocks without
+Request-Tag option either.
 
-\[Note on future development: This is probably where OSCOAP compression could
-come in and say that when OSCOAP and blockwise is in use, the client MUST set a
-Request-Tag if and only if it sets a Block1 option in descriptive usage, and is
-value MUST be the partial IV of that message. That value MUST then be included
-somewhere in the AAD of every block message *after* the first, where this
-compression proposal so far fails because the verifying server would have to
-know at AAD-building time whether or not this is an inner blockwise request.\]
+\[Note on future development: If it turns out we need to compress the option
+into the AAD, this might hook in here and specify that when OSCOAP and
+blockwise is in use, the client MUST set a Request-Tag if and only if it sets a
+Block1 option in descriptive usage, and is value MUST be the partial IV of that
+message. That value MUST then be included somewhere in the AAD of every block
+message *after* the first, where this compression proposal so far fails because
+the verifying server would have to know at AAD-building time whether or not
+this is an inner blockwise request.\]
 
 If the Request-Tag option is set, the client MAY perform simultaneous
 operations that utilize Block1 fragmentation from the same endpoint towards the
