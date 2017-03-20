@@ -1,0 +1,47 @@
+[
+  {
+    "url": "https://api.github.com/repos/chrysn/request-tag/issues/1",
+    "repository_url": "https://api.github.com/repos/chrysn/request-tag",
+    "labels_url": "https://api.github.com/repos/chrysn/request-tag/issues/1/labels{/name}",
+    "comments_url": "https://api.github.com/repos/chrysn/request-tag/issues/1/comments",
+    "events_url": "https://api.github.com/repos/chrysn/request-tag/issues/1/events",
+    "html_url": "https://github.com/chrysn/request-tag/issues/1",
+    "id": 215015538,
+    "number": 1,
+    "title": "Clarify simultaneous use of Request-Tag as inner and outer option",
+    "user": {
+      "login": "chrysn",
+      "id": 442326,
+      "avatar_url": "https://avatars1.githubusercontent.com/u/442326?v=3",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/chrysn",
+      "html_url": "https://github.com/chrysn",
+      "followers_url": "https://api.github.com/users/chrysn/followers",
+      "following_url": "https://api.github.com/users/chrysn/following{/other_user}",
+      "gists_url": "https://api.github.com/users/chrysn/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/chrysn/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/chrysn/subscriptions",
+      "organizations_url": "https://api.github.com/users/chrysn/orgs",
+      "repos_url": "https://api.github.com/users/chrysn/repos",
+      "events_url": "https://api.github.com/users/chrysn/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/chrysn/received_events",
+      "type": "User",
+      "site_admin": false
+    },
+    "labels": [
+
+    ],
+    "state": "open",
+    "locked": false,
+    "assignee": null,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 0,
+    "created_at": "2017-03-17T14:14:26Z",
+    "updated_at": "2017-03-17T14:14:26Z",
+    "closed_at": null,
+    "body": "There exists doubt on whether the same option can be used both in OSCOAP inner and outer messages (like the block options), or whether distinct options are needed.\r\n\r\nThe Request-Discriminator to Request-Tag conversion of the draft itself is not complete yet, the text can't be used to back this, but @jimsch, do you have comments on this already based on yesterday's call?"
+  }
+]
