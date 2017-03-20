@@ -303,7 +303,11 @@ ones; the worst are marked with (?).\]
   request (which the Request-Tag option promises to deal with), and the client
   may fail to retrieve the data because another request clears the state. This
   is problematic more for the proxy use case than for protected blockwise
-  transfers.
+  transfers. It is not fatal for the proxy case, though: It would need to
+  serialize only the last exchange of the Block1 phase and the complete Block2
+  phase, but in that it does not depend on the client's data any more, can
+  finish the Block2 phase quickly and spool the data for the client to fetch
+  before finishing the next operation.
 
 \[Note that the *NS* picture frame example is by far the worst and
 farest-fetched. I'd like to have an example of a non-safe request resulting in
@@ -579,3 +583,62 @@ operation:)
    <----------[14]    2.04 Javert promoted (Block1: 1 received)
 ~~~~~~~~~~
 {: #example-afterloss title="Behavior after extended package loss" }
+
+Use by proxies
+--------------
+
+A proxy can use the Request-Tag option to work off operations from different
+clients (indicated by the two origin lines under "Clients") towards a single
+resource:
+
+~~~~~~~~~~
+Clients Proxy  Server
+    |     |      |
+    +----->      |    POST "Homeless stole apples. Wh"
+    |     |      |        (Block1: 0, more to come)
+    |     |      |
+    |     +------>    POST "Homeless stole apples. Wh"
+    |     |      |        (Block1: 0, more to come)
+    |     |      |
+    |     <------+    2.31 Continue (Block1: 0 received, send more)
+    |     |      |
+    <-----+      |    2.31 Continue (Block1: 0 received, send more)
+  | |
+  |
+  +------->      |    POST "Hitman killed someone. Wh"
+  |       |      |        (Block1: 0, more to come)
+  |       |      |
+  |       +------>    POST "Hitman killed someone. Wh"
+  |       |      |        (Block1: 0, more to come; Request-Tag: "")
+  |       |      |
+  |       <------+    2.31 Continue (Block1: 0 received, send more)
+  |       |      |
+  <-------+      |    2.31 Continue (Block1: 0 received, send more)
+  |       |      |
+  | |     |      |
+    |----->      |    POST "at shall we do with him?"
+    |     |      |        (Block1: 1, last block)
+    |     |      |
+    |     +------>    POST "at shall we do with him?"
+    |     |      |        (Block1: 1, last block)
+    |     |      |
+    |     <------+    2.05 "Set him free."
+    |     |      |        (Block1: 1 received, and this is the result)
+    |     |      |
+    <-----+      |    2.05 "Set him free."
+  | |     |      |        (Block1: 1 received, and this is the result)
+  |
+  |------->      |    POST "at shall we do with him?"
+  |       |      |        (Block1: 1, last block)
+  |       |      |
+  |       +------>    POST "at shall we do with him?"
+  |       |      |        (Block1: 1, last block, Request-Tag: "")
+  |       |      |
+  |       <------+    2.05 "Hang him."
+  |       |      |        (Block1: 1 received, and this is the result)
+  |       |      |
+  <-------+      |    2.05 "Hang him."
+  |       |      |        (Block1: 1 received, and this is the result)
+
+~~~~~~~~~~
+{: #example-proxy title="Proxy example" }
