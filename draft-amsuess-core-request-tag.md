@@ -154,24 +154,34 @@ normative reference to it and state something like:
 > option is counted as a value too, and distinct from the empty option) can
 > only be reused when all request messages sent in a different exchange with
 > the same option value have either been answered (and successfully
-> unprotected), or their sender sequence numbers differ from the next request
-> by at least the window size (in which case they can not be accepted by the
-> server after the new request has started).
+> unprotected), or the replay mechanism used ensures the requester that by the
+> time the new request is processed, none of the requests that used the same
+> Request-Tag value before will be considered valid by the server any more.
+> (With a common fixed-length replay window mechanism, this means that the next
+> sequence number is larger than the sequence number of the last unconfirmed
+> package with the same Request-Tag by the window size).
 >
 > If the client follows the suggestion of only storing its own sequence numbers
-> to persistent memory every K requests, it must increment the stored sequence
-> number counter before using the last window-size sequence numbers available,
-> because the remaining sequence numbes might only be used with certain
-> constraints (it might be necessary to set a Request-Tag on them).
+> to persistent memory every K requests, it must make sure at all times that a
+> number is stored that will satisfy the conditions for using any Request-Tag
+> value. (With a common fixed-length replay window mechanism, this means
+> incrementing the stored sequence number counter already when the difference
+> between the stored and the current sequence number reaches the window size.)
 
 With this text, clients could even work around ever needing to send the option
 by bumping their sequence number -- looks like bad behavior in the first
 place, but then again, it is just a variant of the "forbid out-of-order
 sequence numbers in blockwise" alternative option.
 
-AFAICT this would be the first actual use of the window size; so far client and
-server can well interact with different replay window sizes.  Probably it's OK
-to be the first user of the parameter.
+
+This is the first actual use of the window type by the sender; so far client and
+server can well interact with different replay window sizes. I'd add the
+following after the default value for "Replay Window Type and Size" in the
+"Derivation of Security Context Parameters" section:
+
+> * It is recommended that only window types are used in which the sender can
+>   tell whether a particular out-of-sequence reception can be valid, as this
+>   knowledge allows keeping the use of the Request-Tag option minimal.
 
 
 For the options list:
